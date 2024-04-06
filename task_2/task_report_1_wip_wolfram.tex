@@ -1,0 +1,29 @@
+\section{Data Consistency \& Quality}
+
+\subsection{Feature Statistics Examination}
+
+Our initial step in assessing the data's consistency and quality involved a detailed examination of the feature statistics across the entire dataset. This approach allows us to identify potential outliers, inconsistencies, and wrongly labeled audio snippets without the need to listen to each recording individually. Here's how we conducted this examination:
+
+\subsubsection{Methodology:}
+
+\begin{enumerate}
+    \item \textbf{Descriptive Statistics}: We calculated basic descriptive statistics for each feature, including mean, median, standard deviation, and interquartile range (IQR). These metrics provide insights into the central tendency and spread of the data, helping identify features with abnormal distributions.
+    \item \textbf{Outlier Detection}: By applying the IQR method, we identified outliers as those points lying below \(Q1 - 1.5 \times \text{IQR}\) or above \(Q3 + 1.5 \times \text{IQR}\), where \(Q1\) and \(Q3\) are the first and third quartiles, respectively. This method helped pinpoint samples with feature values significantly deviating from the bulk of the data.
+    \item \textbf{Visualization}: We utilized box plots and histograms for each feature to visually inspect their distributions. Box plots were particularly useful in spotting outliers, while histograms allowed us to observe the shape of the distributions, revealing any skewness or multimodality.
+\end{enumerate}
+
+\subsubsection{Findings:}
+
+\begin{itemize}
+    \item \textbf{Outliers and Anomalies}: Several features, particularly those related to spectral properties such as spectral centroid and rolloff, exhibited outliers. These outliers could indicate recordings that are either mislabeled or possess unique characteristics (e.g., background noise, recording errors) diverging from typical samples.
+    \item \textbf{Abnormal Distributions}: Some features showed highly skewed distributions, suggesting the presence of recordings that might not be representative of the dataset's overall characteristics. For instance, features measuring energy and loudness had distributions skewed towards lower values, potentially indicating recordings with very low volume or silence.
+    \item \textbf{Potential Mislabelings}: In examining the relationship between features and labels, we noted instances where the feature statistics for certain labels did not align with expectations. This discrepancy could suggest mislabelings, such as a word being incorrectly categorized or background noise being labeled as a speech command.
+\end{itemize}
+
+\subsubsection{Implications and Next Steps:}
+
+\begin{itemize}
+    \item \textbf{Data Cleaning}: The identified outliers and potential mislabelings necessitate a review and potential cleaning of the dataset to ensure the accuracy of our model. This step may involve reevaluating the labeling process or excluding certain anomalies from the training set.
+    \item \textbf{Feature Engineering}: Given the abnormal distributions observed in some features, we may consider feature transformation (e.g., logarithmic transformation) or normalization techniques (e.g., scaling) to mitigate their effects and improve model performance.
+    \item \textbf{Further Analysis}: To strengthen our understanding of the data's quality, additional analyses, such as examining feature variance and conducting cluster analysis, could provide further insights into the dataset's structure and any underlying issues.
+\end{itemize}

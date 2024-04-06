@@ -1,0 +1,40 @@
+\section{Label Characteristics}
+
+\subsection{Grouping Strategy}
+
+Given the dataset's nature involving speech commands, effective grouping of the labels is crucial for both practical application and computational efficiency. Here’s a suggested approach for grouping:
+
+\subsubsection{Methodology:}
+
+\begin{enumerate}
+    \item \textbf{Semantic Similarity}: Group words based on their semantic meaning and usage in common speech scenarios. For example, commands like "start," "stop," "pause," and "go" could be grouped under a category like "Control Commands."
+    \item \textbf{Contextual Use}: Consider the context in which these commands are likely to be used. Group words that are likely to be used together in specific contexts, such as "up" and "down" or "on" and "off," which might commonly occur in home automation.
+    \item \textbf{Phonetic Similarity}: Grouping words that sound similar but are used in different contexts might help in focusing the model on distinguishing between these during training, improving its accuracy in real-world scenarios.
+\end{enumerate}
+
+\subsubsection{Proposed Groups:}
+
+\begin{itemize}
+    \item \textbf{Basic Commands}: Includes "yes," "no," "stop," "go," and "pause."
+    \item \textbf{Numbers}: Grouping all numeric terms, useful in settings where numerical input is common.
+    \item \textbf{Directions}: Words like "up," "down," "left," and "right," which are typically used for navigational commands.
+    \item \textbf{Miscellaneous}: All remaining words that do not neatly fit into the above categories but are still relevant for broad command recognition.
+\end{itemize}
+
+\subsection{Class Balance Assessment}
+
+Class balance is critical in training machine learning models to prevent biases toward more frequent classes.
+
+\subsubsection{Methodology:}
+
+\begin{enumerate}
+    \item \textbf{Quantitative Analysis}: Calculate the frequency of each class in the dataset. Use bar charts or pie charts to visually represent these distributions to quickly identify any imbalance.
+    \item \textbf{Assess Impact}: Discuss how the imbalance might affect model training, particularly if some classes are underrepresented, potentially leading to poorer model performance on these classes.
+\end{enumerate}
+
+\subsubsection{Findings:}
+
+\begin{itemize}
+    \item \textbf{Imbalance Details}: Specify which classes are overrepresented and which are underrepresented. For instance, common commands like "stop" and "go" might have more samples compared to less frequently used commands like "zoom in."
+    \item \textbf{Strategies for Mitigation}: Suggest methods to address class imbalance, such as synthetic data generation using techniques like SMOTE, adjusting class weights in the model training process, or collecting more data for underrepresented classes.
+\end{itemize}

@@ -1,0 +1,37 @@
+\section{Feature / Label Agreement}
+
+\subsection{Useful Features for Classification}
+
+Identifying features that are most predictive of labels is crucial for effective model training. This section discusses the correlation between features and labels to determine which features contribute most significantly to the classification task.
+
+\subsubsection{Methodology:}
+
+\begin{enumerate}
+    \item \textbf{Feature Importance Analysis}: Utilize techniques such as feature importance scores from tree-based models (e.g., Random Forests) and mutual information to quantify the contribution of each feature to the prediction accuracy.
+    \item \textbf{Correlation Analysis}: Compute correlation coefficients between features and labels to identify direct relationships that can inform feature selection and model refinement.
+\end{enumerate}
+
+\subsubsection{Findings:}
+
+\begin{itemize}
+    \item \textbf{Significant Features}: Features such as Mel-frequency cepstral coefficients (MFCCs), spectral contrast, and zero-crossing rate have been identified as highly predictive, showing strong correlations with specific speech commands.
+    \item \textbf{Model Implications}: The identification of key features will guide the feature selection process, ensuring that the model focuses on the most informative attributes, thereby improving efficiency and prediction accuracy.
+\end{itemize}
+
+\subsection{Similar Words Feature Distribution}
+
+Analyzing how features distribute among phonetically similar words is essential for ensuring the model can distinguish between such words effectively.
+
+\subsubsection{Methodology:}
+
+\begin{enumerate}
+    \item \textbf{Comparative Analysis}: Examine the feature distributions for pairs or sets of similar-sounding words to assess whether their feature spaces significantly overlap.
+    \item \textbf{Statistical Testing}: Use statistical tests such as the Kolmogorov-Smirnov test to determine if the distributions of features for similar words are statistically different.
+\end{enumerate}
+
+\subsubsection{Findings:}
+
+\begin{itemize}
+    \item \textbf{Distribution Overlap}: Preliminary analysis has shown that certain similar-sounding words (e.g., "haus" vs. "aus") exhibit overlapping feature distributions, which could pose challenges in classification tasks.
+    \item \textbf{Feature Engineering Needs}: These findings suggest a need for advanced feature engineering techniques or the incorporation of contextual information to improve the distinguishability of similar-sounding words.
+\end{itemize}
