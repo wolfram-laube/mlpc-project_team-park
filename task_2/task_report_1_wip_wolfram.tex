@@ -1,0 +1,63 @@
+\section{Data Consistency \& Quality}
+
+\subsection{Feature Statistics Examination}
+
+Our initial step in assessing the data's consistency and quality involved a detailed examination of the feature statistics across the entire dataset. This approach allows us to identify potential outliers, inconsistencies, and wrongly labeled audio snippets without the need to listen to each recording individually. Here's how we conducted this examination:
+
+\subsubsection{Methodology:}
+
+\begin{enumerate}
+    \item \textbf{Descriptive Statistics}: We calculated basic descriptive statistics for each feature, including mean, median, standard deviation, and interquartile range (IQR). These metrics provide insights into the central tendency and spread of the data, helping identify features with abnormal distributions.
+    \item \textbf{Outlier Detection}: By applying the IQR method, we identified outliers as those points lying below \(Q1 - 1.5 \times \text{IQR}\) or above \(Q3 + 1.5 \times \text{IQR}\), where \(Q1\) and \(Q3\) are the first and third quartiles, respectively. This method helped pinpoint samples with feature values significantly deviating from the bulk of the data.
+    \item \textbf{Visualization}: We utilized box plots and histograms for each feature to visually inspect their distributions. Box plots were particularly useful in spotting outliers, while histograms allowed us to observe the shape of the distributions, revealing any skewness or multimodality.
+\end{enumerate}
+
+\subsubsection{Findings:}
+
+\begin{itemize}
+    \item \textbf{Outliers and Anomalies}: Several features, particularly those related to spectral properties such as spectral centroid and rolloff, exhibited outliers. These outliers could indicate recordings that are either mislabeled or possess unique characteristics (e.g., background noise, recording errors) diverging from typical samples.
+    \item \textbf{Abnormal Distributions}: Some features showed highly skewed distributions, suggesting the presence of recordings that might not be representative of the dataset's overall characteristics. For instance, features measuring energy and loudness had distributions skewed towards lower values, potentially indicating recordings with very low volume or silence.
+    \item \textbf{Potential Mislabelings}: In examining the relationship between features and labels, we noted instances where the feature statistics for certain labels did not align with expectations. This discrepancy could suggest mislabelings, such as a word being incorrectly categorized or background noise being labeled as a speech command.
+\end{itemize}
+
+\subsubsection{Implications and Next Steps:}
+
+\begin{itemize}
+    \item \textbf{Data Cleaning}: The identified outliers and potential mislabelings necessitate a review and potential cleaning of the dataset to ensure the accuracy of our model. This step may involve reevaluating the labeling process or excluding certain anomalies from the training set.
+    \item \textbf{Feature Engineering}: Given the abnormal distributions observed in some features, we may consider feature transformation (e.g., logarithmic transformation) or normalization techniques (e.g., scaling) to mitigate their effects and improve model performance.
+    \item \textbf{Further Analysis}: To strengthen our understanding of the data's quality, additional analyses, such as examining feature variance and conducting cluster analysis, could provide further insights into the dataset's structure and any underlying issues.
+\end{itemize}
+
+\subsection{Listening and Bias Identification}
+
+Listening to a subset of the recordings has provided valuable insights into the dataset, particularly in terms of accent and gender distribution. These biases could influence model performance and its ability to generalize across different user groups.
+
+\subsubsection{Findings:}
+
+\begin{itemize}
+    \item \textbf{Accent Bias}: Analysis of a random sample of approximately 30\% of the data revealed a significant bias towards foreign accents, with a ratio of 31 foreign to 19 domestic (German) accents. This imbalance may impact the model’s ability to accurately recognize commands spoken with a German accent.
+    \item \textbf{Gender Bias}: The same sample showed a gender distribution of 33 males to 17 females. This skew towards male voices could lead to lower accuracy or performance when recognizing commands from female speakers.
+\end{itemize}
+
+\subsubsection{Recommendations:}
+
+\begin{itemize}
+    \item \textbf{Data Collection}: To mitigate these biases, additional data collection efforts should focus on increasing the number of recordings from female speakers and those with a German accent. This will help in balancing the dataset and improving the model's robustness.
+    \item \textbf{Model Training}: Consider using techniques such as stratified sampling during training to ensure that the model learns equally well from all categories of data, regardless of accent or gender.
+\end{itemize}
+
+\subsection{``Other'' Sounds Analysis}
+
+Listening to some of the sounds labeled as “Other” provided insights into the types of non-speech audio included in the dataset. This category is crucial for ensuring the model can appropriately handle irrelevant sounds when deployed in real-world environments.
+
+\subsubsection{Findings:}
+
+\begin{itemize}
+    \item \textbf{Types of Sounds}: The "Other" category includes a variety of sounds typically found in household settings, such as background noise, household appliances, and television audio. These sounds are representative of everyday noises likely to be encountered.
+\end{itemize}
+
+\subsubsection{Implications:}
+
+\begin{itemize}
+    \item \textbf{Model Training}: Training the model to distinguish these "Other" sounds from speech commands is essential for preventing false activations and improving user experience. The diversity of sounds within this category suggests the need for robust feature extraction techniques that can capture a wide range of audio characteristics.
+\end{itemize}
