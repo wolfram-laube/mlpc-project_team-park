@@ -35,9 +35,23 @@ Listening to a subset of the recordings has provided valuable insights into the 
 \subsubsection{Findings:}
 
 \begin{itemize}
-    \item \textbf{Accent Bias}: Analysis of a random sample of approximately 30\% of the data revealed a significant bias towards foreign accents, with a ratio of 31 foreign to 19 domestic (German) accents. This imbalance may impact the model’s ability to accurately recognize commands spoken with a German accent.
-    \item \textbf{Gender Bias}: The same sample showed a gender distribution of 33 males to 17 females. This skew towards male voices could lead to lower accuracy or performance when recognizing commands from female speakers.
+    \item \textbf{Accent Bias}: Analysis of a random sample of approximately 30\% of the data
+    revealed a significant bias towards foreign accents, with a ratio of 31 foreign to
+    19 domestic (German) accents.
+    This imbalance may impact the model’s ability to accurately recognize commands spoken
+    with a German accent.
+    \item \textbf{Gender Bias}: Anotheer random sample of same size showed a gender distribution of 33 males to 17 females. This skew towards male voices could lead to lower accuracy or performance when recognizing commands from female speakers.
 \end{itemize}
+
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[scale=0.5]{fig/biases}
+	\vspace{-0.3cm}
+	\caption{Biases.}
+	\label{fig:Biases}
+	\vspace{-0.1cm}
+\end{figure}
+
 
 \subsubsection{Recommendations:}
 
@@ -55,6 +69,15 @@ Listening to some of the sounds labeled as “Other” provided insights into th
 \begin{itemize}
     \item \textbf{Types of Sounds}: The "Other" category includes a variety of sounds typically found in household settings, such as background noise, household appliances, and television audio. These sounds are representative of everyday noises likely to be encountered.
 \end{itemize}
+
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[scale=0.25]{fig/other}
+	\vspace{-0.3cm}
+	\caption{'Other' Sounds.}
+	\label{fig:Other}
+	\vspace{-0.1cm}
+\end{figure}
 
 \subsubsection{Implications:}
 

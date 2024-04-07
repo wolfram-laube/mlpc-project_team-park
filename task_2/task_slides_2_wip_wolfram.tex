@@ -1,0 +1,78 @@
+%! Author = wolfram_e_laube
+%! Date = 07.04.24
+
+% Preamble
+\documentclass{beamer}
+
+\usetheme{Madrid} % This is a simple and clean theme, but you can change it to other themes like: Berlin, Warsaw, etc.
+
+\title{Label Characteristics Analysis}
+\subtitle{Grouping and Class Balance in Speech Command Recognition}
+\author{Team Park: Wolfram Laube, Daniel Hörtenhuber, Oliver NN}
+\institute{JKU \\ MLPC}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Introduction}
+  \begin{itemize}
+    \item Purpose of analyzing label characteristics.
+    \item Importance of effective label grouping and examining class balance for model training.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Grouping Strategy}
+  \begin{itemize}
+    \item \textbf{Semantic Similarity}: Group based on functionality or context (Control Commands, Numbers, Directions).
+    \item \textbf{Contextual Use}: Groupings based on application context (e.g., device control: "on", "off").
+    \item \textbf{Visualization}: [Insert diagram or chart showing groups]
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Grouping Rationale}
+  \begin{itemize}
+    \item Explanation of the logic behind each grouping.
+    \item Discuss how these groupings enhance user interaction in everyday scenarios.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Class Balance Analysis}
+  \begin{itemize}
+    \item Present class frequency data with a bar chart.
+    \item Highlight observed imbalances in the dataset.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Impact of Imbalance}
+  \begin{itemize}
+    \item Effects of class imbalance on model training and performance.
+    \item Potential real-world risks due to these imbalances.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Strategies to Mitigate Imbalance}
+  \begin{itemize}
+    \item Data augmentation, synthetic data generation (e.g., SMOTE).
+    \item Adjusting class weights during model training.
+    \item Brief descriptions of how each method helps balance the classes.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion and Recommendations}
+  \begin{itemize}
+    \item Summary of key points about label grouping and class balance.
+    \item Recommendations for future data collection and model training enhancements.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Questions \& Answers}
+  \begin{itemize}
+    \item Invite questions from the audience.
+  \end{itemize}
+\end{frame}
+
+\end{document}
