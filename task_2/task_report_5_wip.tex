@@ -5,23 +5,51 @@ This report has thoroughly investigated various aspects of the speech command da
 \subsection{Summary of Key Findings}
 
 \begin{itemize}
-    \item \textbf{Data Quality}: The investigation revealed several data quality issues, including outliers and potential mislabelings. Enhanced data cleaning and verification are recommended to improve dataset integrity.
-    \item \textbf{Label and Feature Analysis}: The analysis identified imbalances in class distribution and highlighted the need for thoughtful grouping of labels to enhance model performance. Significant correlations between certain features and labels were found, underscoring their importance for classification tasks.
-    \item \textbf{Feature Redundancy and Speaker Variability}: High redundancy among some features suggests the potential for dimensionality reduction. Variations in feature distributions across different speakers indicate the necessity for normalization to ensure model robustness.
-    \item \textbf{Challenges with Similar Words}: Similar-sounding words present a unique challenge, as they often share overlapping feature distributions, making them difficult to distinguish by the model. Advanced feature engineering or the use of contextual cues may be required to resolve this issue.
+    \item \textbf{Data Quality}:
+    The investigation revealed several minor data quality issues,
+    including outliers and potential mislabelings. Enhanced data cleaning and verification
+    are recommended to improve dataset integrity.
+    \item \textbf{Label and Feature Analysis}:
+    The analysis identified imbalances in class distribution and highlighted the need
+    for thoughtful grouping of labels to enhance model performance.
+    Significant correlations between certain features and labels were found,
+    underscoring their importance for classification tasks.
+    \item \textbf{Feature Redundancy and Speaker Variability}:
+    High redundancy among some features suggests the potential for dimensionality reduction.
+    Variations in feature distributions across different speakers indicate the necessity for
+    normalization to ensure model robustness.
+    \item \textbf{Challenges with Similar Words}:
+    Similar-sounding words present a unique challenge, as they often share
+    overlapping feature distributions, making them difficult to distinguish by the model.
+    Advanced feature engineering or the use of contextual cues may be required to resolve this issue.
 \end{itemize}
 
 \subsection{Recommendations}
 
 \begin{itemize}
-    \item \textbf{Data Augmentation and Cleaning}: Prioritize refining the data collection and annotation process to address issues of outliers and mislabelings. Consider techniques like SMOTE for addressing class imbalance and enhancing the representativeness of the dataset.
-    \item \textbf{Feature Engineering}: Implement feature selection and dimensionality reduction techniques to eliminate redundant features and focus on those most predictive of labels.
-    \item \textbf{Model Training Strategies}: Incorporate mixed training strategies, such as transfer learning and ensemble methods, to leverage the strengths of diverse models and improve overall accuracy and reliability.
-    \item \textbf{Continuous Evaluation}: Regularly test the model with new data and revise the feature set and model parameters accordingly to adapt to changes in data characteristics or application requirements.
+    \item \textbf{Data Augmentation and Cleaning}:
+    Prioritize refining the data collection and annotation process to address issues
+    of outliers and mislabelings.
+    Consider techniques like SMOTE\footnote{https://arxiv.org/abs/1106.1813} for addressing
+    class imbalance and enhancing the representativeness of the dataset.
+    \item \textbf{Feature Engineering}:
+    Implement feature selection and dimensionality reduction techniques to eliminate
+    redundant features and focus on those most predictive of labels.
+    \item \textbf{Model Training Strategies}:
+    Incorporate mixed training strategies, such as transfer learning and ensemble methods,
+    to leverage the strengths of diverse models and improve overall accuracy and reliability.
+    \item \textbf{Continuous Evaluation}:
+    Regularly test the model with new data and revise the feature set and model parameters
+    accordingly to adapt to changes in data characteristics or application requirements.
 \end{itemize}
 
 \subsection{Contribution Statement}
 
-\textit{[Placeholder for the contribution statement detailing each team member’s specific contributions to the project.]}
+%\textit{[Placeholder for the contribution statement detailing each team member’s specific contributions to the project.]}
+\textit{Section 1, infrastructure, layout: Wolfram Laube - Section 2, 3: Daniel Hörtenhuber - Section 4: Oliver NN
+}
 
-This report provides a foundational analysis for developing a robust speech recognition system capable of understanding and executing voice commands accurately in real-world settings. The recommendations, if implemented, will enhance both the quality of the data and the efficacy of the model, ensuring that the system performs optimally across varied scenarios and user groups.
+This report provides a foundational analysis for developing a robust speech recognition system
+capable of understanding and executing voice commands accurately in real-world settings.
+The recommendations, if implemented, will enhance both the quality of the data and the efficacy
+of the model, ensuring that the system performs optimally across varied scenarios and user groups.
