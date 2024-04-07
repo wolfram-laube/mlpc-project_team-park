@@ -8,9 +8,26 @@ Our initial step in assessing the data's consistency and quality involved a deta
 
 \begin{enumerate}
     \item \textbf{Descriptive Statistics}: We calculated basic descriptive statistics for each feature, including mean, median, standard deviation, and interquartile range (IQR). These metrics provide insights into the central tendency and spread of the data, helping identify features with abnormal distributions.
-    \item \textbf{Outlier Detection}: By applying the IQR method, we identified outliers as those points lying below \(Q1 - 1.5 \times \text{IQR}\) or above \(Q3 + 1.5 \times \text{IQR}\), where \(Q1\) and \(Q3\) are the first and third quartiles, respectively. This method helped pinpoint samples with feature values significantly deviating from the bulk of the data.
+    \item \textbf{Outlier Detection}: By applying IQR and z-score methods, we pinpointed samples with feature values significantly deviating from the bulk of the data.
     \item \textbf{Visualization}: We utilized box plots and histograms for each feature to visually inspect their distributions. Box plots were particularly useful in spotting outliers, while histograms allowed us to observe the shape of the distributions, revealing any skewness or multimodality.
 \end{enumerate}
+
+\begin{figure}[!ht]
+	\centering
+	\begin{minipage}{0.49\textwidth}
+		\centering
+		\includegraphics[scale=0.3]{fig/boxplot_skew}
+		\caption{Skewness and outliers: Feat. 173.}
+		\label{fig:Skewness}
+	\end{minipage}\hfill
+	\begin{minipage}{0.49\textwidth}
+		\centering
+		\includegraphics[scale=0.3]{fig/boxplot_skew}
+		\caption{Additional Image Description.}
+		\label{fig:additionalImage}
+	\end{minipage}
+\end{figure}
+
 
 \subsubsection{Findings:}
 
@@ -66,47 +83,76 @@ Listening to a subset of the recordings has provided valuable insights into the 
     19 domestic (German) accents.
     This imbalance may impact the model’s ability to accurately recognize commands spoken
     with a German accent.
-    \item \textbf{Gender Bias}: Anotheer random sample of same size showed a gender distribution of 33 males to 17 females. This skew towards male voices could lead to lower accuracy or performance when recognizing commands from female speakers.
+    \item \textbf{Gender Bias}: Another random sample of same size showed a gender distribution of 33 males to 17 females. This skew towards male voices could lead to lower accuracy or performance when recognizing commands from female speakers.
 \end{itemize}
 
-\begin{figure}[!ht]
-	\centering
-	\includegraphics[scale=0.5]{fig/biases}
-	\vspace{-0.3cm}
-	\caption{Biases.}
-	\label{fig:Biases}
-	\vspace{-0.1cm}
-\end{figure}
+%\begin{figure}[!ht]
+%	\centering
+%	\includegraphics[scale=0.5]{fig/biases}
+%	\vspace{-0.3cm}
+%	\caption{Biases.}
+%	\label{fig:Biases}
+%	\vspace{-0.1cm}
+%\end{figure}
 
 
 \subsubsection{Recommendations:}
 
 \begin{itemize}
     \item \textbf{Data Collection}: To mitigate these biases, additional data collection efforts should focus on increasing the number of recordings from female speakers and those with a German accent. This will help in balancing the dataset and improving the model's robustness.
-    \item \textbf{Model Training}: Consider using techniques such as stratified sampling during training to ensure that the model learns equally well from all categories of data, regardless of accent or gender.
+    \item \textbf{Model Training}: Consider using techniques such as stratified sampling\footnote{https://en.wikipedia.org/wiki/Stratified\textunderscore sampling} during training to ensure that the model learns equally well from all categories of data, regardless of accent or gender.
 \end{itemize}
 
 \subsection{``Other'' Sounds Analysis}
 
-Listening to some of the sounds labeled as “Other” provided insights into the types of non-speech audio included in the dataset. This category is crucial for ensuring the model can appropriately handle irrelevant sounds when deployed in real-world environments.
+Listening to some of the sounds labeled as “Other” provided insights into the types of
+non-speech audio included in the dataset.
+This category is crucial for ensuring the model can appropriately handle irrelevant sounds
+when deployed in real-world environments.
 
 \subsubsection{Findings:}
 
 \begin{itemize}
-    \item \textbf{Types of Sounds}: The "Other" category includes a variety of sounds typically found in household settings, such as background noise, household appliances, and television audio. These sounds are representative of everyday noises likely to be encountered.
+    \item \textbf{Types of Sounds}:
+    The "Other" category includes a variety of sounds typically found in household settings,
+    such as background noise, household appliances, and television audio.
+    These sounds are representative of everyday noises likely to be encountered.
+    \item \textbf{Lacking Sounds}:
+    In contrast to the relatively broad diversity of the existing sounds, we deem the lack of
+    some sounds expectable in a household to be problematic, most notably the absence of child and pet animal sounds.
 \end{itemize}
 
-\begin{figure}[!ht]
-	\centering
-	\includegraphics[scale=0.25]{fig/other}
-	\vspace{-0.3cm}
-	\caption{'Other' Sounds.}
-	\label{fig:Other}
-	\vspace{-0.1cm}
-\end{figure}
+\begin{table}[h]
+    \centering
+    \caption{Distribution of 'Other' Sounds}
+    \label{tab:sounds_distribution}
+    {\tiny
+    \begin{tabular}{lr}
+        \toprule
+        Sound Category & Relative Occurrence (\%) \\
+        \midrule
+        Electronic Device & 16.95\% \\
+        Knocking, Thumping & 14.12\% \\
+        Vocal Non-Speech & 10.17\% \\
+        Rustling (paper, clothes, \ldots) & 9.60\% \\
+        Dishes, Bottles & 9.60\% \\
+        Walking & 9.60\% \\
+        Opening/Closing & 8.47\% \\
+        Misc./Unidentifiable & 8.47\% \\
+        Liquid & 7.34\% \\
+        Engines, Vehicles & 5.65\% \\
+        \bottomrule
+    \end{tabular}
+    }
+\end{table}
 
 \subsubsection{Implications:}
 
 \begin{itemize}
-    \item \textbf{Model Training}: Training the model to distinguish these "Other" sounds from speech commands is essential for preventing false activations and improving user experience. The diversity of sounds within this category suggests the need for robust feature extraction techniques that can capture a wide range of audio characteristics.
+    \item \textbf{Data Acquisition}: Refurbishing "Other" sounds with lacking category data is
+    essential for providing a broad and representative situative embedding.
+    \item \textbf{Model Training}: Training the model to distinguish these "Other" sounds from speech commands is
+    essential for preventing false activations and improving user experience.
+    The diversity of sounds within this category suggests the need for robust feature extraction techniques that can
+    capture a wide range of audio characteristics.
 \end{itemize}
