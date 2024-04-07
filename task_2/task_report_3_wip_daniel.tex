@@ -15,6 +15,16 @@ We utilized histograms and density plots to examine the distributions of pre-com
     \item \textbf{Multimodal Distributions}: Some features displayed multimodal distributions, suggesting the presence of distinct subgroups within the data. This observation could reflect differences in recording environments, speaker characteristics, or word pronunciation.
 \end{itemize}
 
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[scale=0.3]{fig/feature_dist}
+	\vspace{-0.3cm}
+	\caption{Feature Distribution.}
+	\label{fig:FeatureDistribution}
+	\vspace{-0.1cm}
+\end{figure}
+
+
 \subsection{Correlation and Redundancy}
 
 Analyzing the correlation between features is essential to identify redundant information that could be pruned to simplify the model and reduce the risk of overfitting.
@@ -36,11 +46,48 @@ Investigating whether the distribution of features varies significantly across d
 
 \subsubsection{Methodology:}
 
-For this analysis, we grouped the data by speaker identity and then analyzed the variance within feature distributions across these groups. This approach helps us to understand if and how much the speaker's identity might influence the observed feature values.
+For this analysis, we grouped the data by speaker identity and then analyzed the variance within feature distributions across these groups.
+This approach helps us to understand if and how much the speaker's identity might influence the observed feature values.
 
 \subsubsection{Findings:}
 
 \begin{itemize}
-    \item \textbf{Variation Across Speakers}: Preliminary analysis suggests variability in certain features, particularly those related to pitch and timbre, across different speakers. This variability underscores the importance of including speaker normalization techniques in our preprocessing pipeline to mitigate these effects.
+    \item \textbf{Variation Across Speakers}: Preliminary analysis suggests variability in certain features, particularly those related to pitch and timbre, across different speakers.
+    This variability underscores the importance of including speaker normalization techniques in our preprocessing pipeline to mitigate these effects.
     \item \textbf{Normalization Techniques}: Techniques such as cepstral mean normalization (CMN)\footnote{https://en.wikipedia.org/wiki/Cepstral\textunderscore mean\textunderscore and\textunderscore variance\textunderscore normalization} or c (VAD)\footnote{https://en.wikipedia.org/wiki/Voice\textunderscore activity\textunderscore detection} could be employed to reduce the impact of speaker variability on feature distributions.
 \end{itemize}
+
+%\begin{figure}[!ht]
+%	\centering
+%	\begin{minipage}{0.30\textwidth}
+%		\centering
+%		\includegraphics[scale=0.3]{fig/speakers_zcr0}
+%		\caption{Speakers ZCR0}
+%		\label{fig:SpeakersZcr0}
+%	\end{minipage}\hfill
+%	\begin{minipage}{0.30\textwidth}
+%		\centering
+%		\includegraphics[scale=0.3]{fig/speakers_dist}
+%		\caption{Additional Image Description.}
+%		\label{fig:Speakers Dist}
+%	\end{minipage}
+%\end{figure}
+
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[scale=0.3]{fig/speakers_dist}
+	\vspace{-0.3cm}
+	\caption{Speakers Distribution.}
+	\label{fig:SpeakersDistribution}
+	\vspace{-0.1cm}
+\end{figure}
+
+\begin{figure}[!ht]
+	\centering
+	\includegraphics[scale=0.3]{fig/speakers_zcr0}
+	\vspace{-0.3cm}
+	\caption{Speakers ZCR0.}
+	\label{fig:SpeakersZCR0}
+	\vspace{-0.1cm}
+\end{figure}
+
