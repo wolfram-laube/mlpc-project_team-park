@@ -18,6 +18,23 @@ Identifying features that are most predictive of labels is crucial for effective
     \item \textbf{Model Implications}: The identification of key features will guide the feature selection process, ensuring that the model focuses on the most informative attributes, thereby improving efficiency and prediction accuracy.
 \end{itemize}
 
+\begin{figure}[!ht]
+	\centering
+	\begin{minipage}{0.49\textwidth}
+		\centering
+		\includegraphics[scale=0.3]{fig/scatterplot_cluster_natural_tsne}
+		\caption{Clustering - Natural Clusters inferred by K-Means.}
+		\label{fig:ClusterNatural}
+	\end{minipage}\hfill
+	\begin{minipage}{0.49\textwidth}
+		\centering
+		\includegraphics[scale=0.3]{fig/scatterplot_cluster_categories_tsne}
+		\caption{Clustering - Clusters inferred by categorization \textit{as is}.}
+		\label{fig:ClusterCategorized}
+	\end{minipage}
+\end{figure}
+
+
 \subsection{Similar Words Feature Distribution}
 
 Analyzing how features distribute among phonetically similar words is essential for ensuring the model can distinguish between such words effectively.
