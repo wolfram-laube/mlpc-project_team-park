@@ -40,6 +40,22 @@ We applied Pearson's correlation coefficient to assess linear relationships betw
     \item \textbf{Redundancy Reduction}: Based on these findings, we recommend a dimensionality reduction technique, such as Principal Component Analysis (PCA), to eliminate redundant features while preserving the variance within the dataset.
 \end{itemize}
 
+\begin{figure}[!ht]
+	\centering
+	\begin{minipage}{0.49\textwidth}
+		\centering
+		\includegraphics[scale=0.3]{fig/heatmap_single}
+		\caption{Correlation - All features of single frame.}
+		\label{fig:SpeakersZcr0}
+	\end{minipage}\hfill
+	\begin{minipage}{0.49\textwidth}
+		\centering
+		\includegraphics[scale=0.3]{fig/heatmap_all}
+		\caption{Correlation - All feature across all frames.}
+		\label{fig:Speakers Dist}
+	\end{minipage}
+\end{figure}
+
 \subsection{Speaker Variation}
 
 Investigating whether the distribution of features varies significantly across different speakers is crucial for ensuring our model's robustness to speaker variability.
