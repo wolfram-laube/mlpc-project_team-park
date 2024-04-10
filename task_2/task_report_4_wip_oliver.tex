@@ -2,25 +2,43 @@
 
 \subsection{Useful Features for Classification}
 
-Identifying features that are most predictive of labels is crucial for effective model training. This section discusses the correlation between features and labels to determine which features contribute most significantly to the classification task.
+Identifying features that are most predictive of labels is crucial for effective model training. This section discusses the correlation between features and labels to determine which features contribute most significantly to the classification task. However, we were also careful not to preemptively bias ourselves against using certain features simply because they do not seem useful with the analysis we have performed so far.
 
 \subsubsection{Methodology:}
 
 \begin{enumerate}
-    \item \textbf{Feature Importance Analysis}: Utilize techniques such as feature importance scores from tree-based models (e.g., Random Forests) and mutual information to quantify the contribution of each feature to the prediction accuracy.
-    \item \textbf{Correlation Analysis}: Compute correlation coefficients between features and labels to identify direct relationships that can inform feature selection and model refinement.
+    \item \textbf{Analysing feature variance}: We looked at each feature and applied simple metrics to them such as computing mean, median and standard deviation values. The resulting processed dataset allows us to quickly eliminate features we deem to be too unstable to train a reliable classifier on.
+    \item \textbf{Correlation Analysis}: Additionally, we looked at the uniqueness of each feature to see which ones are the most sensitive to subtle differences in the source data.
 \end{enumerate}
 
 \subsubsection{Findings:}
 
 \begin{itemize}
-    \item \textbf{Significant Features}: Features such as Mel-frequency cepstral coefficients (MFCCs), spectral contrast, and zero-crossing rate have been identified as highly predictive, showing strong correlations with specific speech commands.
-    \item \textbf{Model Implications}: The identification of key features will guide the feature selection process, ensuring that the model focuses on the most informative attributes, thereby improving efficiency and prediction accuracy.
+    \item \textbf{1D Features}: At first glance, we identified the bandwidth, centroid, YIN and zero crossing rate (ZCR) 1D features as quite sensitive to the input data with each one producing a fairly unique pattern over time. The former and latter two are mostly quite similar, though we ultimately prefer the centroid and ZCR features for being more stable and more descriptive of the input pattern, especially for similar words.
+    \item \textbf{2D Features}: Out of the 2D features available, we found the mel spectrogram to be the most promising one due to the amount of data available. We believe that he MFCC features while smaller would still be a good enough choice to include into a classifier.
+    \item \textbf{Model Implications}: We come to the conclusion that not all of the features will be required to train a classifier which will ease the resource constraints of the final system considering that the target platform are low power embedded devices.
 \end{itemize}
 
-\subsection{Similar Words Feature Distribution}
+\begin{figure}[!ht]
+	\centering
+	\begin{minipage}{0.49\textwidth}
+		\centering
+		\includegraphics[scale=0.3]{fig/scatterplot_cluster_natural_tsne}
+		\caption{Clustering - inferred by K-Means.}
+		\label{fig:ClusterNatural}
+	\end{minipage}\hfill
+	\begin{minipage}{0.49\textwidth}
+		\centering
+		\includegraphics[scale=0.3]{fig/scatterplot_cluster_categories_tsne}
+		\caption{Clustering - inferred by categorization \textit{as is}.}
+		\label{fig:ClusterCategorized}
+	\end{minipage}
+\end{figure}
+ARI Score: $0.17482900751650168$ (not great, not terrible)
 
-Analyzing how features distribute among phonetically similar words is essential for ensuring the model can distinguish between such words effectively.
+\subsection{Feature Distribution for Similar Words}
+
+Some of the input words are very similar, especially the pair "Licht" and "nicht". The classifier will have to deal with very subtle differences in its input data and overfitting might quickly become a problem.
 
 \subsubsection{Methodology:}
 
