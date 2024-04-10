@@ -180,6 +180,7 @@ pDoneVal  = 0.0
 pDoneStr  = ''
 ETAsec    = 0
 ETAstr    = ''
+
 # Reorder features & reconstruct 2D data in memory
 for Word in range(WordCount):
     for Snippet in range(len(SortedFeatures[Word])):
@@ -205,17 +206,46 @@ pDoneVal  = 0.0
 pDoneStr  = ''
 ETAsec    = 0
 ETAstr    = ''
-# Compute statistics & render them to an image
+Data      = []
+
+Rows      = len(Features)
+Columns   = len(Metrics)
+
+# Compute statistics
 for Word in range(WordCount): 
-    Rows      = len(Features)
-    Columns   = len(Metrics)
+    Data.append([])
+
+    for Feature in range(1, Rows):
+        Data[Word].append(FeatureStatistics(Word, Feature))
+        
+    Processed = Processed + 1
+    End       = time.time()
+    ETAsec    = End - Start
+    pDoneVal  = Processed / WordCount
+    ETAsec    = (ETAsec * (1 / pDoneVal)) - ETAsec
+    pDoneVal  = pDoneVal * 100
+    pDoneStr  = '{:.1f}'.format(pDoneVal)
+    pDoneStr  = '{:<4}'.format(pDoneStr)
+    ETAstr    = '{:.1f}'.format(ETAsec)
+    ETAstr    = '{:<6}'.format(ETAstr)
+    print('[Info] Computing statistics for word: \'' + '{:<15}'.format(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + '\'') + '; ' + pDoneStr + ' % done; ETA: ' + ETAstr + ' sec')
+
+Processed = 0
+Start     = time.time()
+End       = time.time()
+pDoneVal  = 0.0
+pDoneStr  = ''
+ETAsec    = 0
+ETAstr    = ''
+
+# Render statistics
+for Word in range(WordCount): 
     Figure    = pyplot.figure(figsize = (25, 25))
     PlotCoord = 1
     is2D      = False
 
     Figure.suptitle(list(SearchDict.keys())[list(SearchDict.values()).index(Word)], fontsize=16)
-    for Y in range(0, Rows):
-        Feature = Y + 1
+    for Feature in range(1, Rows):
         match Feature:
             case Features.contrast.value:
                 is2D = True
@@ -228,16 +258,15 @@ for Word in range(WordCount):
             case Features.mfcc_d2.value:
                 is2D = True
 
-        Data = FeatureStatistics(Word, Feature)
-        for X in range(0, Columns):
+        for Metric in range(0, Columns):
             pyplot.subplot(Rows, Columns, PlotCoord)
             PlotCoord = PlotCoord + 1
 
-            if (is2D == True) and (X != Metrics.outliers.value):
-                pyplot.imshow(Data[X].T, cmap='hot', interpolation='nearest')
+            if (is2D == True) and (Metric != Metrics.outliers.value):
+                pyplot.imshow(Data[Word][Feature - 1][Metric].T, cmap='hot', interpolation='nearest')
             else:
-                pyplot.plot(Data[X])
-            pyplot.title(Features(Feature).name + ' ' + Metrics(X).name)
+                pyplot.plot(Data[Word][Feature - 1][Metric])
+            pyplot.title(Features(Feature).name + ' ' + Metrics(Metric).name)
 
     Processed = Processed + 1
     End       = time.time()
@@ -249,6 +278,36 @@ for Word in range(WordCount):
     pDoneStr  = '{:<4}'.format(pDoneStr)
     ETAstr    = '{:.1f}'.format(ETAsec)
     ETAstr    = '{:<6}'.format(ETAstr)
-    print('[Info] Computing statistics for word: \'' + '{:<15}'.format(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + '\'') + '; ' + pDoneStr + ' % done; ETA: ' + ETAstr + ' sec')
+    print('[Info] Rendering image for word: \'' + '{:<15}'.format(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + '\'') + '; ' + pDoneStr + ' % done; ETA: ' + ETAstr + ' sec')
     
     pyplot.show()
+
+Rows      = len(Features)
+Columns   = WordCount
+Figure    = pyplot.figure(figsize = (25, 25))
+Figure.suptitle('Median', fontsize=16)
+PlotCoord = 1
+
+for Feature in range(1, Rows):
+    is2D      = False
+    match Feature:
+        case Features.contrast.value:
+            is2D = True
+        case Features.melspect.value:
+            is2D = True
+        case Features.mfcc.value:
+            is2D = True
+        case Features.mfcc_d.value:
+            is2D = True
+        case Features.mfcc_d2.value:
+            is2D = True
+    for Word in range(WordCount):
+        pyplot.subplot(Rows, Columns, PlotCoord)
+        PlotCoord = PlotCoord + 1
+        if (is2D == True):
+            pyplot.imshow(Data[Word][Feature - 1][Metrics.median.value].T, cmap='hot', interpolation='nearest')
+        else:
+            pyplot.plot(Data[Word][Feature - 1][Metrics.median.value])
+        pyplot.title(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + ' ' + Features(Feature).name)
+    
+pyplot.show()
