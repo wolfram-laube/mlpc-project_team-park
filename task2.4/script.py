@@ -6,7 +6,6 @@ import matplotlib as matplot
 import time
 from enum import Enum
 from os import path as os_path
-#import csv
 
 # Terminology:
 # Snippet - One audio segment, 1.1 seconds in length.
@@ -75,7 +74,6 @@ def Reconstruct2DFeature(SnippetID, Feature):
     ReturnArray = numpy.zeros((FrameCount, ArrayYDim))
     for TimeIndex in range(FrameCount):
         for FeatureIndex in range(ArrayYDim):
-            #print('Array is: ' + str(ReturnArray) + ', accessing Dataset[Snippet: ' + str(SnippetID) + '][Feature: ' + str(Offset + FeatureIndex) + '][Time: ' + str(TimeIndex) + '] and writing to ReturnArray[Time: ' + str(TimeIndex) + '][Y: ' + str(FeatureIndex) + ']...')
             ReturnArray[TimeIndex][FeatureIndex] = Dataset[SnippetID][Offset + FeatureIndex][TimeIndex]
     return ReturnArray
 
@@ -107,8 +105,6 @@ def FeatureStatistics(WordID, Feature):
     ReturnData = []
     ArrayYDim  = 1
 
-    print('[Debug] Called FeatureStatistics with WordID: ' + str(WordID) + '; Feature: ' + str(Feature))
-
     match Feature:
         case Features.contrast.value:
             ArrayYDim = 8
@@ -124,7 +120,6 @@ def FeatureStatistics(WordID, Feature):
     WordData = numpy.zeros([len(SortedFeatures[WordID]), FrameCount, ArrayYDim])
 
     for Snippet in range(len(SortedFeatures[WordID])):
-        #print('[Debug] WordID: ' + str(WordID) + ' Snippet: ' + str(Snippet) + ' Feature: ' + str(Feature) + ' SortedFeatures[WordID][Snippet][Feature]: ' + str(SortedFeatures[WordID][Snippet][Feature]))
         WordData[Snippet] = numpy.array(SortedFeatures[WordID][Snippet][Feature]).reshape(FrameCount, ArrayYDim)
     
     #WordData *= 1.0 / WordData.max()
@@ -134,15 +129,16 @@ def FeatureStatistics(WordID, Feature):
     ReturnData.append(numpy.std       (WordData,       axis = 0)) # 3
     ReturnData.append(numpy.var       (WordData,       axis = 0)) # 4
     
+    # Compute the percentage of pixels which deviate from the median by more than 2 sigma
     ReturnData.append(numpy.zeros(len(WordData)))
     for Snippet in range(len(WordData)):
         OutlierCount = 0
         for TimeIndex in range(FrameCount):
             for Y in range(ArrayYDim):
-                if ((WordData[Snippet][TimeIndex][Y] > (ReturnData[Metrics.median.value][TimeIndex][Y] * (1 + Sigma)))
-                or  (WordData[Snippet][TimeIndex][Y] > (ReturnData[Metrics.median.value][TimeIndex][Y] * (1 - Sigma)))):
+                if ((WordData[Snippet][TimeIndex][Y] > (ReturnData[Metrics.median.value][TimeIndex][Y] * (1 + (2 * Sigma))))
+                or  (WordData[Snippet][TimeIndex][Y] > (ReturnData[Metrics.median.value][TimeIndex][Y] * (1 - (2 * Sigma))))):
                     OutlierCount = OutlierCount + 1
-        ReturnData[5][Snippet] = OutlierCount / (FrameCount * ArrayYDim) # 5
+        ReturnData[5][Snippet] = (OutlierCount / (FrameCount * ArrayYDim)) * 100 # 5
 
     return ReturnData
 
@@ -213,11 +209,13 @@ ETAstr    = ''
 for Word in range(WordCount): 
     Rows      = len(Features)
     Columns   = len(Metrics)
-    Figure    = pyplot.figure(figsize = (12, 12))
+    Figure    = pyplot.figure(figsize = (25, 25))
     PlotCoord = 1
     is2D      = False
 
-    for Feature in range(1, Columns):
+    Figure.suptitle(list(SearchDict.keys())[list(SearchDict.values()).index(Word)], fontsize=16)
+    for Y in range(0, Rows):
+        Feature = Y + 1
         match Feature:
             case Features.contrast.value:
                 is2D = True
@@ -231,17 +229,15 @@ for Word in range(WordCount):
                 is2D = True
 
         Data = FeatureStatistics(Word, Feature)
-
-        for Index in range(0, Rows):
+        for X in range(0, Columns):
             pyplot.subplot(Rows, Columns, PlotCoord)
             PlotCoord = PlotCoord + 1
 
-            if (is2D == True) and (Index != Metrics.outliers.value):
-                pyplot.imshow(Data[Index], cmap='hot', interpolation='nearest')
+            if (is2D == True) and (X != Metrics.outliers.value):
+                pyplot.imshow(Data[X].T, cmap='hot', interpolation='nearest')
             else:
-                pyplot.plot(Data[Index])
-            #pyplot.title(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + ' ' + Metrics(Index).name)
-            pyplot.title(Features(Feature).name + ' ' + Metrics(Index).name)
+                pyplot.plot(Data[X])
+            pyplot.title(Features(Feature).name + ' ' + Metrics(X).name)
 
     Processed = Processed + 1
     End       = time.time()
