@@ -1,9 +1,7 @@
 \section{Feature / Label Agreement}
 
 \subsection{Useful Features for Classification}
-
-Identifying features that are most predictive of labels is crucial for effective model training. This section discusses the correlation between features and labels to determine which features contribute most significantly to the classification task. However, we were also careful not to preemptively bias ourselves against using certain features simply because they do not seem useful with the analysis we have performed so far.
-
+In the next section we detail which features will be useful for future tasks and which will not. We were careful not to preemptively bias ourselves against using certain features simply because they do not seem useful with the analysis we have performed so far.
 \subsubsection{Methodology:}
 
 \begin{enumerate}
@@ -14,8 +12,8 @@ Identifying features that are most predictive of labels is crucial for effective
 \subsubsection{Findings:}
 
 \begin{itemize}
-    \item \textbf{1D Features}: At first glance, we identified the bandwidth, centroid, YIN and zero crossing rate (ZCR) 1D features as quite sensitive to the input data with each one producing a fairly unique pattern over time. The former and latter two are mostly quite similar, though we ultimately prefer the centroid and ZCR features for being more stable and more descriptive of the input pattern, especially for similar words.
-    \item \textbf{2D Features}: Out of the 2D features available, we found the mel spectrogram to be the most promising one due to the amount of data available. We believe that he MFCC features while smaller would still be a good enough choice to include into a classifier.
+    \item \textbf{1D features}: At first glance, we identified the bandwidth, centroid, YIN and zero crossing rate (ZCR) 1D features as quite sensitive to the input data with each one producing a fairly unique pattern over time. The former and latter two are mostly quite similar, though we ultimately prefer the centroid and ZCR features for being more stable and more descriptive of the input pattern, especially for similar words.
+    \item \textbf{2D features}: Out of the 2D features available, we found the mel spectrogram to be the most promising one due to the amount of data available. We believe that he MFCC features while smaller would still be a good enough choice to include into a classifier.
     \item \textbf{Model Implications}: We come to the conclusion that not all of the features will be required to train a classifier which will ease the resource constraints of the final system considering that the target platform are low power embedded devices.
 \end{itemize}
 
@@ -23,18 +21,11 @@ Identifying features that are most predictive of labels is crucial for effective
 	\centering
 	\begin{minipage}{0.49\textwidth}
 		\centering
-		\includegraphics[scale=0.3]{fig/scatterplot_cluster_natural_tsne}
-		\caption{Clustering - inferred by K-Means.}
-		\label{fig:ClusterNatural}
+		\includegraphics[scale=0.3]{fig/Task2.4_Summary.png}
+		\caption{Overview of the expected features in the dataset.}
+		\label{fig:FeaturesSummary}
 	\end{minipage}\hfill
-	\begin{minipage}{0.49\textwidth}
-		\centering
-		\includegraphics[scale=0.3]{fig/scatterplot_cluster_categories_tsne}
-		\caption{Clustering - inferred by categorization \textit{as is}.}
-		\label{fig:ClusterCategorized}
-	\end{minipage}
 \end{figure}
-ARI Score: $0.17482900751650168$ (not great, not terrible)
 
 \subsection{Feature Distribution for Similar Words}
 
@@ -43,13 +34,12 @@ Some of the input words are very similar, especially the pair "Licht" and "nicht
 \subsubsection{Methodology:}
 
 \begin{enumerate}
-    \item \textbf{Comparative Analysis}: Examine the feature distributions for pairs or sets of similar-sounding words to assess whether their feature spaces significantly overlap.
-    \item \textbf{Statistical Testing}: Use statistical tests such as the Kolmogorov-Smirnov test to determine if the distributions of features for similar words are statistically different.
+    \item \textbf{Comparative Analysis}: We compared the features visually and statistically to determine which features are the most sensitive to the subtle changes in the input data.
 \end{enumerate}
 
 \subsubsection{Findings:}
 
 \begin{itemize}
-    \item \textbf{Distribution Overlap}: Preliminary analysis has shown that certain similar-sounding words (e.g., "haus" vs. "aus") exhibit overlapping feature distributions, which could pose challenges in classification tasks.
-    \item \textbf{Feature Engineering Needs}: These findings suggest a need for advanced feature engineering techniques or the incorporation of contextual information to improve the distinguishability of similar-sounding words.
+    \item \textbf{Feature seperation}: We found that most features, even the ones selected above only yield very poor seperation between the most challenging pairs. The higher order derivatives of the DCT coefficients tend to give the most seperation.
+    \item \textbf{Implications for the classifier}: We must therefore conclude that any future classifier will have to be trained for very subtle differences and perhaps be context sensitive in order to reliably detect very similar words.
 \end{itemize}
