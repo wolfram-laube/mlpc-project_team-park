@@ -1,7 +1,12 @@
+# =============================================================================
+# Incomplete:
+# Fix ETA & add elapsed time
+# =============================================================================
+
 import numpy as numpy
 import pandas
 import matplotlib.pyplot as pyplot
-import matplotlib as matplot
+from matplotlib.colors import LogNorm
 
 import time
 from enum import Enum
@@ -13,8 +18,14 @@ from os import path as os_path
 # Bin     - One spectral frequency slot. Every snippet has 64 of these.
 
 FrameCount = 44
-Features    = Enum('Features', ['bandwidth', 'centroid', 'energy', 'flatness', 'flux', 'power', 'yin', 'zcr', 'contrast', 'melspect', 'mfcc', 'mfcc_d', 'mfcc_d2'], start = 1)
+#Features    = Enum('Features', ['bandwidth', 'centroid', 'energy', 'flatness', 'flux', 'power', 'yin', 'zcr', 'contrast', 'melspect', 'mfcc', 'mfcc_d', 'mfcc_d2'], start = 1)
+Features    = Enum('Features', ['bandwidth', 'centroid', 'energy', 'flatness', 'flux', 'power', 'yin', 'zcr', 'contrast', 'melspect', 'mfcc', 'mfcc_d', 'mfcc_d2'], start = 0)
 Metrics     = Enum('Metrics',  ['mean', 'median', '10p percentile', 'std dev', 'variance', 'outliers'], start = 0)
+FeaturePlotOrder = [Features.bandwidth.value, Features.centroid.value, Features.yin.value, Features.zcr.value,
+                    Features.energy.value, Features.power.value, Features.flatness.value, Features.flux.value,
+                    Features.melspect.value, Features.mfcc.value, Features.mfcc_d.value, Features.mfcc_d2.value, Features.contrast.value]
+#WordPlotOrder = [1, 15, 6, 17, 11, 13, 7, 12, 4, 14, 8, 16, 2, 10, 5, 9, 19, 0, 3, 18, 20]
+WordPlotOrder = [1, 15, 6, 17, 11, 13, 7, 12, 4, 14, 8, 16, 2, 10, 5, 9, 19, 0, 3, 18]
 
 # Internals
 SearchDict = dict()
@@ -144,7 +155,7 @@ def FeatureStatistics(WordID, Feature):
 
 def AggregateFeatures(SnippetID):
     ReturnList = []
-    ReturnList.append(SnippetID)                                          # 0
+    #ReturnList.append(SnippetID)                                          # 0
     ReturnList.append(Reconstruct1DFeature(SnippetID, Features.bandwidth.value)) # 1
     ReturnList.append(Reconstruct1DFeature(SnippetID, Features.centroid.value )) # 2
     ReturnList.append(Reconstruct1DFeature(SnippetID, Features.energy.value   )) # 3
@@ -215,7 +226,8 @@ Columns   = len(Metrics)
 for Word in range(WordCount): 
     Data.append([])
 
-    for Feature in range(1, Rows):
+    #for Feature in range(1, Rows):
+    for Feature in range(Rows):
         Data[Word].append(FeatureStatistics(Word, Feature))
         
     Processed = Processed + 1
@@ -245,7 +257,8 @@ for Word in range(WordCount):
     is2D      = False
 
     Figure.suptitle(list(SearchDict.keys())[list(SearchDict.values()).index(Word)], fontsize=16)
-    for Feature in range(1, Rows):
+    #for Feature in range(1, Rows):
+    for Feature in range(Rows):
         match Feature:
             case Features.contrast.value:
                 is2D = True
@@ -263,9 +276,13 @@ for Word in range(WordCount):
             PlotCoord = PlotCoord + 1
 
             if (is2D == True) and (Metric != Metrics.outliers.value):
-                pyplot.imshow(Data[Word][Feature - 1][Metric].T, cmap='hot', interpolation='nearest')
+                #ArrayXForm = numpy.transpose(Data[Word][Feature - 1][Metric])
+                ArrayXForm = numpy.transpose(Data[Word][Feature][Metric])
+                ArrayXForm = numpy.flip(ArrayXForm, axis = 0)
+                pyplot.imshow(ArrayXForm, cmap='hot', interpolation='nearest')
             else:
-                pyplot.plot(Data[Word][Feature - 1][Metric])
+                #pyplot.plot(Data[Word][Feature - 1][Metric])
+                pyplot.plot(Data[Word][Feature][Metric])
             pyplot.title(Features(Feature).name + ' ' + Metrics(Metric).name)
 
     Processed = Processed + 1
@@ -282,32 +299,61 @@ for Word in range(WordCount):
     
     pyplot.show()
 
-Rows      = len(Features)
-Columns   = WordCount
-Figure    = pyplot.figure(figsize = (25, 25))
-Figure.suptitle('Median', fontsize=16)
-PlotCoord = 1
-
-for Feature in range(1, Rows):
-    is2D      = False
-    match Feature:
-        case Features.contrast.value:
-            is2D = True
-        case Features.melspect.value:
-            is2D = True
-        case Features.mfcc.value:
-            is2D = True
-        case Features.mfcc_d.value:
-            is2D = True
-        case Features.mfcc_d2.value:
-            is2D = True
-    for Word in range(WordCount):
-        pyplot.subplot(Rows, Columns, PlotCoord)
-        PlotCoord = PlotCoord + 1
-        if (is2D == True):
-            pyplot.imshow(Data[Word][Feature - 1][Metrics.median.value].T, cmap='hot', interpolation='nearest')
-        else:
-            pyplot.plot(Data[Word][Feature - 1][Metrics.median.value])
-        pyplot.title(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + ' ' + Features(Feature).name)
+def SummaryPlot():
+    Rows       = len(Features)
+    Columns    = WordCount
+    Figure     = pyplot.figure(figsize = (25, 25))
+    GridSpec   = Figure.add_gridspec(Rows, Columns, hspace = 0, wspace = 0)
+    Figure.suptitle('Median', fontsize=16)
     
-pyplot.show()
+    Axs = GridSpec.subplots(sharex='col', sharey='row')
+    
+    #constrast , mfcc log scale
+    # add legend for 1 d plot
+    #add color bar for 2d plots
+    # add labels, fix overlap
+    # fix time scale on bottom, add a title on top 'Time ->'
+
+    for Feature in FeaturePlotOrder:
+        print('[Debug] Feature: ' + str(Feature))
+        is2D      = False
+        isLog     = False
+        match Feature:
+            case Features.contrast.value:
+                is2D  = True
+                isLog = True
+            case Features.melspect.value:
+                is2D  = True
+            case Features.mfcc.value:
+                is2D  = True
+                isLog = True
+            case Features.mfcc_d.value:
+                is2D  = True
+                isLog = True
+            case Features.mfcc_d2.value:
+                is2D  = True
+                isLog = True
+                
+        Axs[Feature, 0].set_ylabel(Features(Feature).name, rotation = 'horizontal')
+        
+        for Word in WordPlotOrder:   
+            print('[Debug] Word: ' + str(Word))
+            if (is2D == True):
+                ArrayXForm = numpy.transpose(Data[Word][Feature][Metrics.median.value])
+                ArrayXForm = numpy.flip(ArrayXForm, axis = 0)
+                if (isLog == True):
+                    #Axs[Feature, Word].imshow(ArrayXForm, cmap='plasma', norm = LogNorm(vmin=0.0, vmax=0.3), interpolation='nearest', aspect='auto')
+                    Axs[Feature, Word].imshow(ArrayXForm, cmap='plasma', interpolation='nearest', aspect='auto')
+                else:
+                    Axs[Feature, Word].imshow(ArrayXForm, cmap='plasma', interpolation='nearest', aspect='auto')
+            else:
+                Axs[Feature, Word].plot(Data[Word][Feature][Metrics.median.value], zorder = 2.0, color = ('blue',  1.0))
+                Axs[Feature, Word].plot(Data[Word][Feature][Metrics.mean.value],   zorder = 1.0, color = ('green', 0.3))
+
+    for Word in WordPlotOrder:   
+        Axs[0, Word].set_xlabel(list(SearchDict.keys())[list(SearchDict.values()).index(Word)])
+    for ax in Figure.get_axes():
+        ax.label_outer()
+    pyplot.show()
+    
+SummaryPlot()
