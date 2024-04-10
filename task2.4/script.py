@@ -1,9 +1,11 @@
 import numpy as numpy
 import pandas
-import time
 import matplotlib.pyplot as pyplot
 import matplotlib as matplot
+
+import time
 from enum import Enum
+from os import path as os_path
 #import csv
 
 # Terminology:
@@ -29,13 +31,10 @@ def SearchMetadata():
     PrintIndex = 0
     
     for Index in range(len(Metadata['word'])):
-        #if Index > 500:
-        #    break
         if Metadata['word'][Index] not in SearchDict:
             SearchDict[Metadata['word'][Index]] = DictIndex
             ReturnList.append([])
             DictIndex = DictIndex + 1
-            #print('[Debug] Added ' + str(Metadata['word'][Index]) + ' to SearchDict.')
         ReturnList[SearchDict[Metadata['word'][Index]]].append(Index) # ReturnList[WordID]
         
     print('[Info] SearchMetadata generated the following list with ' + str(len(ReturnList)) + ' categories:')
@@ -81,7 +80,6 @@ def Reconstruct2DFeature(SnippetID, Feature):
     return ReturnArray
 
 def Reconstruct1DFeature(SnippetID, Feature):
-    #print('[Debug] Feature: ' + str(Feature))
     Offset     = 0
     match Feature:
         case Features.bandwidth.value:
@@ -108,6 +106,8 @@ def Reconstruct1DFeature(SnippetID, Feature):
 def FeatureStatistics(WordID, Feature):
     ReturnData = []
     ArrayYDim  = 1
+
+    print('[Debug] Called FeatureStatistics with WordID: ' + str(WordID) + '; Feature: ' + str(Feature))
 
     match Feature:
         case Features.contrast.value:
@@ -166,8 +166,11 @@ def AggregateFeatures(SnippetID):
     return ReturnList
 
 # Assuming the path to your file is correct on your local system
-Dataset  = numpy.load('C:\\Users\\InstallTest\\Documents\\development.npy')
-Metadata = pandas.read_csv('C:\\Users\\InstallTest\\Documents\\development.csv')
+WorkingDir = os_path.dirname(os_path.abspath(__file__))
+File       = os_path.join(WorkingDir, 'dataset', 'development.npy')
+Dataset    = numpy.load(File)
+File       = os_path.join(WorkingDir, 'dataset', 'development.csv')
+Metadata   = pandas.read_csv(File)
 print('[Info] Opened dataset has ' + str(len(Dataset)) + ' entries.')
 
 # Order the dataset with the given metadata
@@ -188,17 +191,16 @@ for Word in range(WordCount):
         ID = SortedFeatures[Word][Snippet]
         SortedFeatures[Word][Snippet] = AggregateFeatures(ID)
 
-    End = time.time()
-    ETAsec = End - Start
+    End      = time.time()
+    ETAsec   = End - Start
     pDoneVal = Processed / Snippets
-    ETAsec = (ETAsec * (1 / pDoneVal)) - ETAsec
+    ETAsec   = (ETAsec * (1 / pDoneVal)) - ETAsec
     pDoneVal = pDoneVal * 100
     pDoneStr = '{:.1f}'.format(pDoneVal)
     pDoneStr = '{:<4}'.format(pDoneStr)
-    ETAstr = '{:.1f}'.format(ETAsec)
-    ETAstr = '{:<6}'.format(ETAstr)
+    ETAstr   = '{:.1f}'.format(ETAsec)
+    ETAstr   = '{:<6}'.format(ETAstr)
     print('[Info] Reordering data for word: \'' + '{:<15}'.format(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + '\'') + '; last ID: ' + str(ID) + '; ' + pDoneStr + ' % done; ETA: ' + ETAstr + ' sec')
-
 
 Processed = 0
 Start     = time.time()
@@ -209,13 +211,12 @@ ETAsec    = 0
 ETAstr    = ''
 # Compute statistics & render them to an image
 for Word in range(WordCount): 
-    Columns = len(Features)
-    Rows    = len(Metrics)
-    Figure = pyplot.figure(figsize = (12, 12))
-    #Feature = 0
-    is2D = False
+    Rows      = len(Features)
+    Columns   = len(Metrics)
+    Figure    = pyplot.figure(figsize = (12, 12))
+    PlotCoord = 1
+    is2D      = False
 
-#    for Feature in range(Columns):
     for Feature in range(1, Columns):
         match Feature:
             case Features.contrast.value:
@@ -230,28 +231,28 @@ for Word in range(WordCount):
                 is2D = True
 
         Data = FeatureStatistics(Word, Feature)
-        
-        Processed = Processed + 1
-        End = time.time()
-        ETAsec = End - Start
-        pDoneVal = Processed / WordCount
-        ETAsec = (ETAsec * (1 / pDoneVal)) - ETAsec
-        pDoneVal = pDoneVal * 100
-        pDoneStr = '{:.1f}'.format(pDoneVal)
-        pDoneStr = '{:<4}'.format(pDoneStr)
-        ETAstr = '{:.1f}'.format(ETAsec)
-        ETAstr = '{:<6}'.format(ETAstr)
-        print('[Info] Computing statistics for word: \'' + '{:<15}'.format(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + '\'') + '; ' + pDoneStr + ' % done; ETA: ' + ETAstr + ' sec')
 
-        for Index in range(1, Rows):
-            #Figure.add_subplot(Rows, Columns, Index)
-            pyplot.subplot(Rows, Columns, Index)
+        for Index in range(0, Rows):
+            pyplot.subplot(Rows, Columns, PlotCoord)
+            PlotCoord = PlotCoord + 1
 
-            if is2D == 1:
+            if (is2D == True) and (Index != Metrics.outliers.value):
                 pyplot.imshow(Data[Index], cmap='hot', interpolation='nearest')
             else:
                 pyplot.plot(Data[Index])
-            pyplot.title(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + ' ' + Metrics(Index).name)
-    #pyplot.imshow(Data[0], cmap='hot', interpolation='nearest')
-    #pyplot.title('Mean for word ' + str(Word) + ' feature 10')
+            #pyplot.title(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + ' ' + Metrics(Index).name)
+            pyplot.title(Features(Feature).name + ' ' + Metrics(Index).name)
+
+    Processed = Processed + 1
+    End       = time.time()
+    ETAsec    = End - Start
+    pDoneVal  = Processed / WordCount
+    ETAsec    = (ETAsec * (1 / pDoneVal)) - ETAsec
+    pDoneVal  = pDoneVal * 100
+    pDoneStr  = '{:.1f}'.format(pDoneVal)
+    pDoneStr  = '{:<4}'.format(pDoneStr)
+    ETAstr    = '{:.1f}'.format(ETAsec)
+    ETAstr    = '{:<6}'.format(ETAstr)
+    print('[Info] Computing statistics for word: \'' + '{:<15}'.format(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + '\'') + '; ' + pDoneStr + ' % done; ETA: ' + ETAstr + ' sec')
+    
     pyplot.show()
