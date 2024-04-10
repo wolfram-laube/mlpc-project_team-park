@@ -1,7 +1,9 @@
 import numpy as numpy
 import pandas
+import time
 import matplotlib.pyplot as pyplot
 import matplotlib as matplot
+from enum import Enum
 #import csv
 
 # Terminology:
@@ -10,15 +12,25 @@ import matplotlib as matplot
 # Bin     - One spectral frequency slot. Every snippet has 64 of these.
 
 FrameCount = 44
+Features    = Enum('Features', ['bandwidth', 'centroid', 'energy', 'flatness', 'flux', 'power', 'yin', 'zcr', 'contrast', 'melspect', 'mfcc', 'mfcc_d', 'mfcc_d2'], start = 1)
+Metrics     = Enum('Metrics',  ['mean', 'median', '10p percentile', 'std dev', 'variance', 'outliers'], start = 0)
+
+# Internals
+SearchDict = dict()
 Sigma      = 0.341
+WordCount  = 0
+Snippets   = 0
 
 def SearchMetadata():
-    SearchDict = dict()
+    global WordCount
+    global Snippets
     DictIndex  = 0
     ReturnList = [] # List of lists
     PrintIndex = 0
     
     for Index in range(len(Metadata['word'])):
+        #if Index > 500:
+        #    break
         if Metadata['word'][Index] not in SearchDict:
             SearchDict[Metadata['word'][Index]] = DictIndex
             ReturnList.append([])
@@ -26,11 +38,14 @@ def SearchMetadata():
             #print('[Debug] Added ' + str(Metadata['word'][Index]) + ' to SearchDict.')
         ReturnList[SearchDict[Metadata['word'][Index]]].append(Index) # ReturnList[WordID]
         
-    print('SearchMetadata generated the following list with ' + str(len(ReturnList)) + ' categories:')
+    print('[Info] SearchMetadata generated the following list with ' + str(len(ReturnList)) + ' categories:')
     
     for Key, Value in SearchDict.items():
-        print(str(len(ReturnList[PrintIndex])) + ' entries of word ' + str(Key) + ' with Index ' + str(Value))
+        print(' - ' + str(len(ReturnList[PrintIndex])) + ' entries of word \'' + '{:<15}'.format(str(Key) + '\'') + ' with Index ' + str(Value))
+        Snippets = Snippets + len(ReturnList[PrintIndex])
         PrintIndex = PrintIndex + 1
+
+    WordCount = len(ReturnList)
     return ReturnList
 
 # 2D arrays to create for each snippet:
@@ -43,19 +58,19 @@ def Reconstruct2DFeature(SnippetID, Feature):
     ArrayYDim  = 0
     Offset     = 0
     match Feature:
-        case 'contrast':
+        case Features.contrast.value:
             ArrayYDim = 8
             Offset    = 2
-        case 'melspect':
+        case Features.melspect.value:
             ArrayYDim = 64
             Offset    = 12
-        case 'mfcc':
+        case Features.mfcc.value:
             ArrayYDim = 32
             Offset    = 76
-        case 'mfcc_d':
+        case Features.mfcc_d.value:
             ArrayYDim = 32
             Offset    = 108
-        case 'mfcc_d2':
+        case Features.mfcc_d2.value:
             ArrayYDim = 32
             Offset    = 140
     ReturnArray = numpy.zeros((FrameCount, ArrayYDim))
@@ -66,23 +81,24 @@ def Reconstruct2DFeature(SnippetID, Feature):
     return ReturnArray
 
 def Reconstruct1DFeature(SnippetID, Feature):
+    #print('[Debug] Feature: ' + str(Feature))
     Offset     = 0
     match Feature:
-        case 'bandwidth':
+        case Features.bandwidth.value:
             Offset    = 0
-        case 'centroid':
+        case Features.centroid.value:
             Offset    = 1
-        case 'energy':
+        case Features.energy.value:
             Offset    = 9
-        case 'flatness':
+        case Features.flatness.value:
             Offset    = 10
-        case 'flux':
+        case Features.flux.value:
             Offset    = 11
-        case 'power':
+        case Features.power.value:
             Offset    = 172
-        case 'yin':
+        case Features.yin.value:
             Offset    = 173
-        case 'zcr':
+        case Features.zcr.value:
             Offset    = 174
     ReturnArray = numpy.zeros(FrameCount)
     for TimeIndex in range(FrameCount):
@@ -91,167 +107,151 @@ def Reconstruct1DFeature(SnippetID, Feature):
 
 def FeatureStatistics(WordID, Feature):
     ReturnData = []
-    FeatureID  = 0
-    ArrayYDim  = 0
+    ArrayYDim  = 1
+
     match Feature:
-        case 'bandwidth':
-            FeatureID = 1
-        case 'centroid':
-            FeatureID = 2
-        case 'energy':
-            FeatureID = 3
-        case 'flatness':
-            FeatureID = 4
-        case 'flux':
-            FeatureID = 5
-        case 'power':
-            FeatureID = 6
-        case 'yin':
-            FeatureID = 7
-        case 'zcr':
-            FeatureID = 8
-        case 'contrast':
+        case Features.contrast.value:
             ArrayYDim = 8
-            FeatureID = 9
-        case 'melspect':
+        case Features.melspect.value:
             ArrayYDim = 64
-            FeatureID = 10
-        case 'mfcc':
+        case Features.mfcc.value:
             ArrayYDim = 32
-            FeatureID = 11
-        case 'mfcc_d':
+        case Features.mfcc_d.value:
             ArrayYDim = 32
-            FeatureID = 12
-        case 'mfcc_d2':
+        case Features.mfcc_d2.value:
             ArrayYDim = 32
-            FeatureID = 13
+            
     WordData = numpy.zeros([len(SortedFeatures[WordID]), FrameCount, ArrayYDim])
 
     for Snippet in range(len(SortedFeatures[WordID])):
-        WordData[Snippet] = numpy.array(SortedFeatures[WordID][Snippet][FeatureID])
-    #    for Time in range(44):
-    #        for Y in range(64):
-    #            Average[Snippet][Time][Y] = SortedFeatures[0][Snippet][10][Time][Y]
+        #print('[Debug] WordID: ' + str(WordID) + ' Snippet: ' + str(Snippet) + ' Feature: ' + str(Feature) + ' SortedFeatures[WordID][Snippet][Feature]: ' + str(SortedFeatures[WordID][Snippet][Feature]))
+        WordData[Snippet] = numpy.array(SortedFeatures[WordID][Snippet][Feature]).reshape(FrameCount, ArrayYDim)
     
     #WordData *= 1.0 / WordData.max()
-    ReturnData.append(numpy.mean(WordData, axis = 0))
-    ReturnData.append(numpy.median(WordData, axis = 0))
-    ReturnData.append(numpy.percentile(WordData, 10.0, axis = 0))
-    ReturnData.append(numpy.std(WordData, axis = 0))
-    ReturnData.append(numpy.var(WordData, axis = 0))
+    ReturnData.append(numpy.mean      (WordData,       axis = 0)) # 0
+    ReturnData.append(numpy.median    (WordData,       axis = 0)) # 1
+    ReturnData.append(numpy.percentile(WordData, 10.0, axis = 0)) # 2
+    ReturnData.append(numpy.std       (WordData,       axis = 0)) # 3
+    ReturnData.append(numpy.var       (WordData,       axis = 0)) # 4
     
     ReturnData.append(numpy.zeros(len(WordData)))
     for Snippet in range(len(WordData)):
         OutlierCount = 0
         for TimeIndex in range(FrameCount):
             for Y in range(ArrayYDim):
-                if ((WordData[Snippet][TimeIndex][Y] > (ReturnData[1][TimeIndex][Y] * (1 + Sigma)))
-                    or (WordData[Snippet][TimeIndex][Y] > (ReturnData[1][TimeIndex][Y] * (1 - Sigma)))):
+                if ((WordData[Snippet][TimeIndex][Y] > (ReturnData[Metrics.median.value][TimeIndex][Y] * (1 + Sigma)))
+                or  (WordData[Snippet][TimeIndex][Y] > (ReturnData[Metrics.median.value][TimeIndex][Y] * (1 - Sigma)))):
                     OutlierCount = OutlierCount + 1
-        ReturnData[5][Snippet] = OutlierCount / (FrameCount * ArrayYDim)
+        ReturnData[5][Snippet] = OutlierCount / (FrameCount * ArrayYDim) # 5
 
     return ReturnData
 
 def AggregateFeatures(SnippetID):
     ReturnList = []
-    ReturnList.append(SnippetID)                                    # 0
-    ReturnList.append(Reconstruct1DFeature(SnippetID, 'bandwidth')) # 1
-    ReturnList.append(Reconstruct1DFeature(SnippetID, 'centroid' )) # 2
-    ReturnList.append(Reconstruct1DFeature(SnippetID, 'energy'   )) # 3
-    ReturnList.append(Reconstruct1DFeature(SnippetID, 'flatness' )) # 4
-    ReturnList.append(Reconstruct1DFeature(SnippetID, 'flux'     )) # 5
-    ReturnList.append(Reconstruct1DFeature(SnippetID, 'power'    )) # 6
-    ReturnList.append(Reconstruct1DFeature(SnippetID, 'yin'      )) # 7
-    ReturnList.append(Reconstruct1DFeature(SnippetID, 'zcr'      )) # 8
-    ReturnList.append(Reconstruct2DFeature(SnippetID, 'contrast'))  # 9
-    ReturnList.append(Reconstruct2DFeature(SnippetID, 'melspect'))  # 10
-    ReturnList.append(Reconstruct2DFeature(SnippetID, 'mfcc'    ))  # 11
-    ReturnList.append(Reconstruct2DFeature(SnippetID, 'mfcc_d'  ))  # 12
-    ReturnList.append(Reconstruct2DFeature(SnippetID, 'mfcc_d2' ))  # 13
+    ReturnList.append(SnippetID)                                          # 0
+    ReturnList.append(Reconstruct1DFeature(SnippetID, Features.bandwidth.value)) # 1
+    ReturnList.append(Reconstruct1DFeature(SnippetID, Features.centroid.value )) # 2
+    ReturnList.append(Reconstruct1DFeature(SnippetID, Features.energy.value   )) # 3
+    ReturnList.append(Reconstruct1DFeature(SnippetID, Features.flatness.value )) # 4
+    ReturnList.append(Reconstruct1DFeature(SnippetID, Features.flux.value     )) # 5
+    ReturnList.append(Reconstruct1DFeature(SnippetID, Features.power.value    )) # 6
+    ReturnList.append(Reconstruct1DFeature(SnippetID, Features.yin.value      )) # 7
+    ReturnList.append(Reconstruct1DFeature(SnippetID, Features.zcr.value      )) # 8
+    
+    ReturnList.append(Reconstruct2DFeature(SnippetID, Features.contrast.value )) # 9
+    ReturnList.append(Reconstruct2DFeature(SnippetID, Features.melspect.value )) # 10
+    ReturnList.append(Reconstruct2DFeature(SnippetID, Features.mfcc.value     )) # 11
+    ReturnList.append(Reconstruct2DFeature(SnippetID, Features.mfcc_d.value   )) # 12
+    ReturnList.append(Reconstruct2DFeature(SnippetID, Features.mfcc_d2.value  )) # 13
     return ReturnList
 
 # Assuming the path to your file is correct on your local system
-Dataset = numpy.load('C:\\Users\\InstallTest\\Documents\\development.npy')
-print('Opened dataset has ' + str(len(Dataset)) + ' entries.')
+Dataset  = numpy.load('C:\\Users\\InstallTest\\Documents\\development.npy')
 Metadata = pandas.read_csv('C:\\Users\\InstallTest\\Documents\\development.csv')
+print('[Info] Opened dataset has ' + str(len(Dataset)) + ' entries.')
 
-SortedFeatures = SearchMetadata() # List of lists of ids for one word.
+# Order the dataset with the given metadata
+SortedFeatures = SearchMetadata()
 
-ID = 0
-TotalCount = 45296
-RunCount = 0
-for Word in range(len(SortedFeatures)):
-    print('Sorting & reconstructing data for word: \'' + str(Word) + '\'; ID: ' + str(ID) + '; % done: ' + str((RunCount / TotalCount) * 100))
+ID        = 0
+Processed = 0
+Start     = time.time()
+End       = time.time()
+pDoneVal  = 0.0
+pDoneStr  = ''
+ETAsec    = 0
+ETAstr    = ''
+# Reorder features & reconstruct 2D data in memory
+for Word in range(WordCount):
     for Snippet in range(len(SortedFeatures[Word])):
-        RunCount = RunCount + 1
+        Processed = Processed + 1
         ID = SortedFeatures[Word][Snippet]
         SortedFeatures[Word][Snippet] = AggregateFeatures(ID)
 
-for Word in range(len(SortedFeatures)):
-    Columns = 6
-    Rows = 2
-    Figure = pyplot.figure(figsize = (8, 8))
-    Feature = 0
-    is2D = 0
+    End = time.time()
+    ETAsec = End - Start
+    pDoneVal = Processed / Snippets
+    ETAsec = (ETAsec * (1 / pDoneVal)) - ETAsec
+    pDoneVal = pDoneVal * 100
+    pDoneStr = '{:.1f}'.format(pDoneVal)
+    pDoneStr = '{:<4}'.format(pDoneStr)
+    ETAstr = '{:.1f}'.format(ETAsec)
+    ETAstr = '{:<6}'.format(ETAstr)
+    print('[Info] Reordering data for word: \'' + '{:<15}'.format(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + '\'') + '; last ID: ' + str(ID) + '; ' + pDoneStr + ' % done; ETA: ' + ETAstr + ' sec')
 
-    for Run in range(13):
-        match Run:
-            case 1:
-                Feature = 'bandwidth'
-                is2D    = 0
-            case 2:
-                Feature = 'centroid'
-                is2D    = 0
-            case 3:
-                Feature = 'energy'
-                is2D    = 0 
-            case 4:
-                Feature = 'flatness'
-                is2D    = 0
-            case 5:
-                Feature = 'flux'
-                is2D    = 0
-            case 6:
-                Feature = 'power'
-                is2D    = 0
-            case 7:
-                Feature = 'yin'
-                is2D    = 0
-            case 8:
-                Feature = 'zcr'
-                is2D    = 0
-            case 9:
-                Feature = 'contrast'
-                is2D    = 1
-            case 10:
-                Feature = 'melspect'
-                is2D    = 1
-            case 11:
-                Feature = 'mfcc'
-                is2D    = 1
-            case 12:
-                Feature = 'mfcc_d'
-                is2D    = 1
-            case 13:
-                Feature = 'mfcc_d2'
-                is2D    = 1  
+
+Processed = 0
+Start     = time.time()
+End       = time.time()
+pDoneVal  = 0.0
+pDoneStr  = ''
+ETAsec    = 0
+ETAstr    = ''
+# Compute statistics & render them to an image
+for Word in range(WordCount): 
+    Columns = len(Features)
+    Rows    = len(Metrics)
+    Figure = pyplot.figure(figsize = (12, 12))
+    #Feature = 0
+    is2D = False
+
+#    for Feature in range(Columns):
+    for Feature in range(1, Columns):
+        match Feature:
+            case Features.contrast.value:
+                is2D = True
+            case Features.melspect.value:
+                is2D = True
+            case Features.mfcc.value:
+                is2D = True
+            case Features.mfcc_d.value:
+                is2D = True
+            case Features.mfcc_d2.value:
+                is2D = True
+
         Data = FeatureStatistics(Word, Feature)
-        for Index in range(1, 6):
-            Figure.add_subplot(Rows, Columns, Index)
-            match Index:
-                case 1:
-                    Title = 'mean'
-                case 2:
-                    Title = 'median'
-                case 3:
-                   Title = '10% percentile'
-                case 4:
-                    Title = 'std deviation'
-                case 5:
-                    Title = 'variance'
+        
+        Processed = Processed + 1
+        End = time.time()
+        ETAsec = End - Start
+        pDoneVal = Processed / WordCount
+        ETAsec = (ETAsec * (1 / pDoneVal)) - ETAsec
+        pDoneVal = pDoneVal * 100
+        pDoneStr = '{:.1f}'.format(pDoneVal)
+        pDoneStr = '{:<4}'.format(pDoneStr)
+        ETAstr = '{:.1f}'.format(ETAsec)
+        ETAstr = '{:<6}'.format(ETAstr)
+        print('[Info] Computing statistics for word: \'' + '{:<15}'.format(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + '\'') + '; ' + pDoneStr + ' % done; ETA: ' + ETAstr + ' sec')
+
+        for Index in range(1, Rows):
+            #Figure.add_subplot(Rows, Columns, Index)
+            pyplot.subplot(Rows, Columns, Index)
+
             if is2D == 1:
-                pyplot.imshow(Data[Index - 1], cmap='hot', interpolation='nearest')
+                pyplot.imshow(Data[Index], cmap='hot', interpolation='nearest')
             else:
-                pyplot.plot(Data[Index - 1])
-            pyplot.title(str(Word) + Title)
+                pyplot.plot(Data[Index])
+            pyplot.title(list(SearchDict.keys())[list(SearchDict.values()).index(Word)] + ' ' + Metrics(Index).name)
+    #pyplot.imshow(Data[0], cmap='hot', interpolation='nearest')
+    #pyplot.title('Mean for word ' + str(Word) + ' feature 10')
     pyplot.show()
