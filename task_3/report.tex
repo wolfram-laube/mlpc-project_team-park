@@ -1,6 +1,5 @@
 \documentclass{article}
 
-
 % if you need to pass options to natbib, use, e.g.:
 %     \PassOptionsToPackage{numbers, compress}{natbib}
 % before loading neurips_2023
@@ -10,7 +9,6 @@
 
 % to avoid loading the natbib package, add option nonatbib:
 %    \usepackage[nonatbib]{neurips_2023}
-
 
 \usepackage[utf8]{inputenc} % allow utf-8 input
 \usepackage[T1]{fontenc}    % use 8-bit T1 fonts
@@ -22,11 +20,9 @@
 \usepackage{microtype}      % microtypography
 \usepackage{xcolor}
 \usepackage{amsmath}
-\usepackage{graphicx}         % colors
+\usepackage{graphicx}       % colors
 
-
-\title{MLPC Report Task 2 - Data Exploration}
-
+\title{MLPC Report Task 3 - Classification Experiments}
 
 % The \author macro works with any number of authors. There are two commands
 % used to separate the names and addresses of multiple authors: \And and \AND.
@@ -36,33 +32,36 @@
 % authors names on the first line, and the last on the second line, try using
 % \AND instead of \And before the third author name.
 
-
-\author{% 
-  Team Park \AND
-  Author Oliver König
-  \And
-  Author Daniel Hörtenhuber
-  \And 
-  Author Wolfram Laube
+\author{%
+  Team [Your Team Name] \AND
+  Author Oliver König \AND
+  Author Daniel Hörtenhuber \AND
+  Author [Your Name]
 }
-
 
 \begin{document}
 
-
 \maketitle
 
+\begin{abstract}
+A brief summary of the project, methodologies, and findings.
+\end{abstract}
 
 \begin{contributions}
-  Section 1, infrastructure, layout: Wolfram Laube - Section 2, 3: Daniel Hörtenhuber - Section 4: Oliver König
+  Section 1: Data Split: [Your Name] \AND
+  Section 2: Classes & Features: Daniel Hörtenhuber \AND
+  Section 3: Evaluation: Oliver König \AND
+  Section 4: Experiments: Each team member on their classifier \AND
+  Section 5: Analysis of Realistic Scenes: Collaborative
 \end{contributions}
 
+\input{report_section1_data_split}
+\input{report_section2_classes_features}
+\input{report_section3_evaluation}
+\input{report_section4_experiments}
+\input{report_section5_realistic_scenes}
 
-\input{task_report_1_wip_wolfram}
-\input{task_report_2_wip_daniel}
-\input{task_report_3_wip_daniel}
-\input{task_report_4_wip_oliver}
-
-\input{task_report_5_wip}
+\section{Conclusion}
+Summary of findings and future research directions.
 
 \end{document}
