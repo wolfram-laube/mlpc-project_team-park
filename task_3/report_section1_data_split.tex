@@ -7,4 +7,5 @@ Discuss how the dataset is divided into training, validation, and test sets. Exp
 Describe measures taken to prevent information leakage between sets. Mention any specific strategies used.
 
 \subsection{Deriving Unbiased Performance Estimates}
-Explain how unbiased performance estimates were obtained. Discuss techniques such as cross-validation or separate test sets.
+Hyperparameter Tuning was conducted by training the classifier on different hyperparameters, notably the number of estimators and maximum depth. The accuracy scores were plotted and examined visually to choose the optimal hyperparameters.
+The final model was then evaluated on the held-out test set, which had not been used during the training or validation phases. This approach provides an unbiased estimate of the model's performance on unseen data.
