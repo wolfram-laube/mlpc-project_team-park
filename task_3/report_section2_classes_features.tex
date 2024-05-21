@@ -1,10 +1,38 @@
 \section{Classes \& Features}
 
 \subsection{Grouping of Words and "Other" Snippets}
-Detail the process of grouping the 20 keywords and audio snippets labeled as "Other." Explain the reasoning behind the chosen groupings.
+The grouping of the 20 keywords and audio snippets into categories was based on their semantic meaning and functionality. This categorization helped in simplifying the classification task by reducing the number of unique classes and aggregating similar concepts together.
+More general terms are placed in the Miscellaneous category to ensure that the model is not overwhelmed by too many specific categories
+
+\begin{table}
+  \caption{Grouping of Keywords}
+  \label{tab:keyword_grouping}
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    Keyword & Group Name \\
+    \midrule
+    Fernseher & Fenseher \\
+    Heizung & Heizung \\
+    Lüftung & Lüftung \\
+    Ofen & Ofen \\
+    Radio & Radio \\
+    Staubsauger & Staubsauger \\
+    Licht & Licht \\
+    Alarm & Alarm \\
+    an & Command an \\
+    aus & Command aus \\
+    warm, offen & Status \\
+    Leitung, Spiegel, Brötchen, Haus, Schraube & Objects \\
+    kann, nicht, wunderbar, other & Miscellaneous \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \subsection{Subset of Selected Features}
-List and describe the subset of features selected for the analysis. Explain the feature selection process.
+For the random forest Classifier, we found that including all available features yielded the best model performance, compared to using different feature subsets.
+Standardizing the features by removing the mean and scaling to unit variance using a standard scaler resulted in a noticeable, though not substantial, improvement in model performance.
+Applying log transformation to the skewed features identified in the previous assignment did not lead to noticeable improvements in model performance and may have even slightly worsened the results.
 
 \subsection{Preprocessing Steps}
 Describe any preprocessing steps applied to the data (e.g., normalization, noise reduction). Explain why these preprocessing steps were necessary.
