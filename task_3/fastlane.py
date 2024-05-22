@@ -123,6 +123,7 @@ def preprocess_and_save(metadata, root_dir):
 # Preprocess and save all audio files
 preprocess_and_save(metadata, root_dir)
 
+##############################
 
 # Function to load preprocessed data
 def load_preprocessed_data(preprocessed_dir):
@@ -153,6 +154,8 @@ X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, r
 print(f'Training set size: {len(X_train)}')
 print(f'Validation set size: {len(X_val)}')
 print(f'Test set size: {len(X_test)}')
+
+###############################################################
 
 import os
 import numpy as np
