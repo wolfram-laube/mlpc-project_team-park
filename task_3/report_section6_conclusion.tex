@@ -1,16 +1,14 @@
 \section{Conclusion}
 
 \subsection{Summary of Findings}
-In this task, we evaluated three different classifiers—Random Forest, Nearest Neighbour, and Convolutional Neural Network (CNN)—for the recognition of spoken commands. The analysis involved preprocessing the audio data, implementing the classifiers, and assessing their performance in both ideal and realistic conditions. The key findings are as follows:
+In this task, we evaluated two different classifiers—Random Forest and Convolutional Neural Network (CNN)—for the recognition of spoken commands. The analysis involved preprocessing the audio data, implementing the classifiers, and assessing their performance in both ideal and realistic conditions. The key findings are as follows:
 
 \begin{itemize}
     \item \textbf{Preprocessing and Feature Extraction:} Effective preprocessing steps, including normalization and Independent Component Analysis (ICA), were essential in enhancing the quality of the raw audio data. The provided feature set was comprehensive, but the CNN demonstrated strong performance even with minimal feature engineering.
 
     \item \textbf{Random Forest:} This classifier performed robustly with a high overall accuracy of 91\%. It was particularly effective for most keywords, although it struggled with phonetically similar words like "Ofen" and "offen".
 
-    \item \textbf{Nearest Neighbour:} While providing reasonable accuracy, the Nearest Neighbour classifier was less effective compared to the other models, particularly in noisy environments and with similar sounding keywords.
-
-    \item \textbf{CNN:} The CNN outperformed the other classifiers with an accuracy of 92.26\%, demonstrating superior performance in recognizing keywords even in the presence of background noise. However, it still faced challenges with phonetically close keywords and varied speaker accents.
+    \item \textbf{CNN:} The CNN outperformed the Random Forest classifier with an accuracy of 92.26\%, demonstrating superior performance in recognizing keywords even in the presence of background noise. However, it still faced challenges with phonetically close keywords and varied speaker accents.
 
     \item \textbf{Realistic Scene Analysis:} Qualitative evaluation revealed that high background noise and phonetically similar keywords were the primary sources of misclassification. These issues persisted even after applying advanced noise reduction techniques like ICA.
 \end{itemize}

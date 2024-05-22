@@ -34,15 +34,15 @@ For the Random Forest classifier, we found that including all available features
 \subsection{Preprocessing Steps}
 Various preprocessing steps were applied to the data to enhance the quality and effectiveness of the models.
 
-\subsubsection{Random Forest and Nearest Neighbour}
-For the Random Forest and Nearest Neighbour classifiers, the precompiled derived features provided in the development file were utilized. These features were preprocessed as follows:
+\subsubsection{Random Forest}
+For the Random Forest classifier, the precompiled derived features provided in the development file were utilized. These features were preprocessed as follows:
 \begin{itemize}
     \item \textbf{Standardization}: The features were standardized by removing the mean and scaling to unit variance using a standard scaler.
     \item \textbf{Log Transformation}: Log transformation was applied to skewed features, though this did not significantly improve performance.
 \end{itemize}
 
 \subsubsection{Convolutional Neural Networks (CNN)}
-Unlike the other classifiers, the CNN methodology focused solely on raw WAV files, bypassing precompiled feature information to test the effectiveness of raw audio data in training a performant model. The preprocessing steps for the CNN included:
+Unlike the Random Forest classifier, the CNN methodology focused solely on raw WAV files, bypassing precompiled feature information to test the effectiveness of raw audio data in training a performant model. The preprocessing steps for the CNN included:
 \begin{itemize}
     \item \textbf{Normalization}: The audio data was normalized to ensure that the features were on a similar scale, which is crucial for the effective training of the model.
     \item \textbf{ICA for Noise Reduction}: Independent Component Analysis (ICA) was applied to reduce background noise and enhance signal quality. This step was particularly important for the CNN, which relies heavily on the quality of input data.

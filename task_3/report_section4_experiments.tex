@@ -15,6 +15,15 @@ The key hyperparameters evaluated were the number of estimators and the maximum 
 \subsubsection{Overfitting and Underfitting Analysis}
 Overfitting was particularly evident when using high numbers of estimators, but this was mitigated by visualizing the accuracy across different numbers of estimators and adjusting the parameter accordingly based on the plot. The training score remained consistently at 1.0 or 100\% across all sample sizes, indicating that the model perfectly fit the training data. This perfect score, however, suggests that the model was likely overfitting. In contrast, the cross-validation score started at approximately 75\% with smaller sample sizes and gradually increased to about 90\% as the sample size grew. This improvement indicates that the model's ability to generalize to unseen data improved with more training samples, thereby reducing overfitting.
 
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[scale=0.5]{fig/rfc_learning_curve.png}
+    \vspace{-0.3cm}
+    \caption{Learning Curve}
+    \label{fig:rfc_learning_curve}
+    \vspace{-0.1cm}
+\end{figure}
+
 \subsubsection{Final Unbiased Performance Comparison}
 Overall, the Random Forest model demonstrates robust performance in classifying the speech data, with particularly high accuracy and well-balanced precision and recall across most categories. The exceptions that did not perform as well were expected, as words like "Ofen," "offen," "Licht," and "nicht" are pronounced quite similarly.
 
@@ -45,15 +54,7 @@ Overall, the Random Forest model demonstrates robust performance in classifying 
   \end{tabular}
 \end{table}
 
-\subsection{Nearest Neighbour}
-\subsubsection{Classification Performance with Varying Hyperparameters}
-Present the results of experiments with different hyperparameter values. Visualize the change in performance.
-\subsubsection{Overfitting and Underfitting Analysis}
-Discuss the extent of overfitting or underfitting observed. Explain how these issues depend on hyperparameter values.
-\subsubsection{Final Unbiased Performance Comparison}
-Summarize the results in a comparative table or plot.
-
-\subsection{CNN}
+\subsection{Convolutional Neural Networks}
 \subsubsection{Classification Performance with Varying Hyperparameters}
 The CNN architecture was tested with various hyperparameters, including the number of filters, kernel sizes, and dropout rates. The key hyperparameters evaluated were:
 \begin{itemize}
@@ -75,7 +76,7 @@ The CNN model achieved the following final performance metrics on the validation
     \item \textbf{F1-score}: 92.21\%
 \end{itemize}
 
-Overall, the CNN model demonstrated superior performance compared to the Random Forest and Nearest Neighbour classifiers, particularly in terms of accuracy and generalization across different categories.
+Overall, the CNN model demonstrated superior performance compared to the Random Forest classifier, particularly in terms of accuracy and generalization across different categories.
 
 \begin{table}
   \caption{Classification Report for CNN Model}
