@@ -15,6 +15,9 @@ import random #  to generate random ids
 import sys   # for some info messages
 import secrets # DEPRECATED for randomised snippet distribution and id generation
 import operator
+import sklearn
+import sklearn.neighbors
+import sklearn.metrics
 
 # Terminology:
 # Snippet - One audio clip, 1.1 seconds in length.
@@ -899,7 +902,17 @@ def Main():
             print('Created buffer ' + str(((Mem[1][0] * Mem[1][1]) * 8) / 1048576) + ' MiB long')
             Numpy  = numpy.ndarray(shape = Mem[1], dtype = numpy.double, buffer = Shared.buf)
             iMems[WordNum].append(tuple([Shared, Numpy]))
-    
+
+    # Only works with offline data
+    print('Starting offline ML')
+    ML(WordCount, DatasetTables, WordDict, iMems, Mems)
+    # COPYPASTE
+    for WordNum in range(WordCount + 2):
+        for Memory in [Tuple[0] for Tuple in iMems[WordNum]]:
+              Memory.close()
+    DatasetMemory.close()
+    raise SystemExit
+    # end COPYPASTE
     # note for many shared arrays: (which is the better approach!:) due to the difficulties of passing data to one individual worker via the initialiser and due to the fact that i dont know which worker gets which tasks, the best way would be to setup the shared mem at the bebinning of each workers task function with a known name (so resultMemory-21-2) for word 21 and feature 2
     # will need resultmem 1-22, features 1-3 (spect, mfccd2, zcr - bandwidth 2d merge)
     # each worker will need to keep a record of which numpy array position is which snippet. these tables then need to be used to write the final 198 [(22*3) features*3 train/test/valid] numpy arrays to the disk. before writing to the disk, each numpy array has to be randomised once more so that the same speaker is not adjacent to itself
@@ -940,6 +953,90 @@ def Main():
     Workers.close()
     Workers.join()
     print('Completed')
+
+def ML(WordCount, DatasetTables, WordDict, iMems, Mems):
+    Vlen = (44 * 64) + (44 * 32) # + (44 * 44)
+    TrainIdx = 0
+    TestIdx = 0
+    ValidIdx = 0
+    DatasetSnippets = list()
+    for Dataset in range(len(DatasetTables)):
+        DatasetSnippets.append(0)
+        for Word in DatasetTables[Dataset]:
+            DatasetSnippets[Dataset] += len(Word)
+    DatasetSnippets[0] = int(DatasetSnippets[0] * 1.2)
+    DatasetSnippets[1] = int(DatasetSnippets[1] * 1.2)
+    DatasetSnippets[2] = int(DatasetSnippets[2] * 1.2)
+    Training  = numpy.ndarray(shape = tuple([DatasetSnippets[0], Vlen]))
+    TrainingV = numpy.ndarray(shape = tuple([DatasetSnippets[0], 10]))
+    Testing  = numpy.ndarray(shape = tuple([DatasetSnippets[1], Vlen]))
+    TestingV = numpy.ndarray(shape = tuple([DatasetSnippets[1], 10]))
+    Validation  = numpy.ndarray(shape = tuple([DatasetSnippets[2], Vlen]))
+    ValidationV = numpy.ndarray(shape = tuple([DatasetSnippets[2], 10]))
+    for WordNum in range(WordCount + 2):
+        for DSFeature in range(0, 3):
+            Filename = Mems[WordNum][DSFeature][0] + '.npy'
+            Dat1 = numpy.load(file = Filename)
+            Filename = Mems[WordNum][DSFeature + 3][0] + '.npy'
+            Dat2 = numpy.load(file = Filename)
+            Shape = Dat1.shape[0]
+            for Snippet in range(Shape):
+                if DSFeature in (0, 3):
+                    #Training = numpy.append(arr = Training, values = numpy.load(file = Filename))
+                    #if TrainIdx == 18000:
+                    #    breakpoint()
+                    Training[TrainIdx] = numpy.concatenate([Dat1[Snippet], Dat2[Snippet]])
+                    TrainIdx += 1
+                if DSFeature in (1, 4):
+                    #Testing = numpy.append(arr = Testing, values = numpy.load(file = Filename))
+                    Testing[TestIdx] = numpy.concatenate([Dat1[Snippet], Dat2[Snippet]])
+                    TestIdx += 1
+                if DSFeature in (2, 5):
+                    #Validation = numpy.append(arr = Validation, values = numpy.load(file = Filename))
+                    Validation[ValidIdx] = numpy.concatenate([Dat1[Snippet], Dat2[Snippet]])
+                    ValidIdx += 1
+        #numpy.concatenate(iMems[WordNum][0][1], iMems[WordNum][3][1], axis = 1, out = Training)
+        #numpy.concatenate(iMems[WordNum][1][1], iMems[WordNum][4][1], axis = 1, out = Testing)
+        #numpy.concatenate(iMems[WordNum][2][1], iMems[WordNum][5][1], axis = 1, out = Validation)
+    DatasetStr = ['Train', 'Test', 'Valid']
+    TrainIdx = 0
+    TestIdx = 0
+    ValidIdx = 0
+    for Dataset in range(len(DatasetTables)):
+        for WordNum in range(WordCount + 2):
+            Filename = 'Vectors-' + DatasetStr[Dataset] + '-' + DictKey(WordDict, WordNum) + '.npy'
+            Vec = numpy.load(file = Filename)
+            Shape = Vec.shape[0]
+            for Snippet in range(Shape):
+                if Dataset == 0:
+                    #TrainingV = numpy.append(arr = TrainingV, values = numpy.load(file = Filename))
+                    TrainingV[TrainIdx] = Vec[Snippet]
+                    TrainIdx += 1
+                if Dataset == 1:
+                    #TestingV = numpy.append(arr = TestingV, values = numpy.load(file = Filename))
+                    TestingV[TestIdx] = Vec[Snippet]
+                    TestIdx += 1
+                if Dataset == 2:
+                    #ValidationV = numpy.append(arr = ValidationV, values = numpy.load(file = Filename))
+                    ValidationV[ValidIdx] = Vec[Snippet]
+                    ValidIdx += 1
+    print('Training...')
+    TrainingWordNums = [2, 4, 5, 6, 8, 9, 11, 12, 15, 19]
+    WordStrList = list()
+    for n in TrainingWordNums:
+        WordStrList.append(DictKey(WordDict, n))
+    for i in range(1, 50, 5):
+        print('k = ' + str(i))
+        var1 = kNN = sklearn.neighbors.KNeighborsClassifier(n_neighbors=i)
+        var2 = kNN.fit(Training, TrainingV)
+        var3 = kNN.predict(Testing)
+        var4 = kNN.predict(Validation)
+        var5 = kNN.score(Validation, ValidationV)
+        print(sklearn.metrics.classification_report(y_true = ValidationV, y_pred = var4, target_names = WordStrList))
+        print(str(var5) + ' k = ' + str(i))
+    print('training done!')
+    return
+    
 
 # Entry
 if __name__ == '__main__':
