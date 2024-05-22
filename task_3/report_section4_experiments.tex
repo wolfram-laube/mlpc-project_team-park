@@ -13,17 +13,7 @@ The key hyperparameters evaluated were the number of estimators and the maximum 
 \end{figure}
 
 \subsubsection{Overfitting and Underfitting Analysis}
-Overfitting was particularly evident when using high numbers of estimators, but this was mitigated by visualizing the accuracy across different numbers of estimators and adjusting the parameter accordingly based on the plot.
-The training score remained consistently at 1.0 or 100\% across all sample sizes, indicating that the model perfectly fit the training data. This perfect score, however, suggests that the model was likely overfitting. In contrast, the cross-validation score started at approximately 75\% with smaller sample sizes and gradually increased to about 90\% as the sample size grew. This improvement indicates that the model's ability to generalize to unseen data improved with more training samples, thereby reducing overfitting.
-
-\begin{figure}[!ht]
-    \centering
-    \includegraphics[scale=0.5]{fig/rfc_learning_curve.png}
-    \vspace{-0.3cm}
-    \caption{Learning Curve}
-    \label{fig:rfc_learning_curve}
-    \vspace{-0.1cm}
-\end{figure}
+Overfitting was particularly evident when using high numbers of estimators, but this was mitigated by visualizing the accuracy across different numbers of estimators and adjusting the parameter accordingly based on the plot. The training score remained consistently at 1.0 or 100\% across all sample sizes, indicating that the model perfectly fit the training data. This perfect score, however, suggests that the model was likely overfitting. In contrast, the cross-validation score started at approximately 75\% with smaller sample sizes and gradually increased to about 90\% as the sample size grew. This improvement indicates that the model's ability to generalize to unseen data improved with more training samples, thereby reducing overfitting.
 
 \subsubsection{Final Unbiased Performance Comparison}
 Overall, the Random Forest model demonstrates robust performance in classifying the speech data, with particularly high accuracy and well-balanced precision and recall across most categories. The exceptions that did not perform as well were expected, as words like "Ofen," "offen," "Licht," and "nicht" are pronounced quite similarly.
@@ -76,26 +66,8 @@ The results showed that increasing the number of filters and adjusting the kerne
 \subsubsection{Overfitting and Underfitting Analysis}
 The CNN model showed signs of overfitting at higher dropout rates and excessive numbers of filters. This was evident from the gap between training and validation accuracy. By adjusting these hyperparameters, overfitting was mitigated. The training and validation accuracy curves indicated that the model generalized well with a balanced configuration of filters and dropout rates.
 
-\begin{figure}[!ht]
-    \centering
-    \includegraphics[scale=0.5]{fig/cnn_hyperparameters.png}
-    \vspace{-0.3cm}
-    \caption{CNN Performance with Varying Hyperparameters}
-    \label{fig:cnn_hyperparameters}
-    \vspace{-0.1cm}
-\end{figure}
-
-\begin{figure}[!ht]
-    \centering
-    \includegraphics[scale=0.5]{fig/cnn_learning_curve.png}
-    \vspace{-0.3cm}
-    \caption{CNN Learning Curve}
-    \label{fig:cnn_learning_curve}
-    \vspace{-0.1cm}
-\end{figure}
-
 \subsubsection{Final Unbiased Performance Comparison}
-The CNN model achieved the following final performance metrics on the test set:
+The CNN model achieved the following final performance metrics on the validation set:
 \begin{itemize}
     \item \textbf{Accuracy}: 92.26\%
     \item \textbf{Precision}: 92.75\%
