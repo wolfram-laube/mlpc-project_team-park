@@ -44,8 +44,13 @@
 \maketitle
 
 \begin{abstract}
-A brief summary of the project, methodologies, and findings.
+This report details the experiments conducted for speech command recognition using various classifiers. Initially, three classifiers were considered: Random Forest, Convolutional Neural Network (CNN), and K-Nearest Neighbour (KNN). As the experiments progressed, it became evident that KNN would not be a serious contender compared to Random Forest and CNN due to its lower performance. Consequently, the focus was shifted entirely to evaluating Random Forest and CNN. This report covers the methodologies, preprocessing steps, and performance evaluations of the selected classifiers, leading to the conclusion that the CNN model demonstrated superior performance.
 \end{abstract}
+
+\section{Introduction}
+Speech command recognition is a crucial aspect of human-computer interaction, enabling users to control systems through voice commands. This project aims to evaluate different classifiers for speech command recognition using a dataset of audio recordings. Initially, we considered three classifiers: Random Forest, Convolutional Neural Network (CNN), and K-Nearest Neighbour (KNN).
+
+As the level of concretization increased during our experiments, it became clear that KNN was not a serious contender against Random Forest and CNN. The performance gains achieved by Random Forest and CNN were significantly higher and more promising. Given the time constraints and the need to provide a meaningful comparison, we decided to eliminate the KNN classifier from further evaluation. Continuing to evaluate and document a classifier with relatively lower performance was deemed inefficient and would not contribute significantly to the overall findings. Thus, the focus of this report is on the Random Forest and CNN classifiers.
 
 \begin{contributions}
   Section 1: Data Split: Wolfram Laube \AND
@@ -54,9 +59,6 @@ A brief summary of the project, methodologies, and findings.
   Section 4: Experiments: Collaborative \AND
   Section 5: Analysis of Realistic Scenes: Collaborative
 \end{contributions}
-
-\section{Introduction}
-The objective of this task was to evaluate and compare the performance of various classifiers for spoken command recognition. Initially, three classifiers—Random Forest, Nearest Neighbour, and Convolutional Neural Network (CNN)—were considered. However, as the level of concretization gradually increased, it became evident that the Nearest Neighbour classifier would not be a serious contender against the other two models. Therefore, the focus was shifted to a detailed evaluation of the Random Forest and CNN classifiers, given their rapid performance gains and the time constraints to produce a comparative analysis.
 
 \input{report_section1_data_split}
 \input{report_section2_classes_features}
