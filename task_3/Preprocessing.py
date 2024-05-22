@@ -36,9 +36,10 @@ Config = dict({
     'AllowSexBias'   : True,  # temp, not implemented yet
     })
 Enums = dict({
-    'Propagators' : Enum('Propagators', ['RowByRow', 'ColByCol', 'Spiral', 'Minispiral', 'Nanospiral', 'Triangle', 'TriangleCol', 'Tile'])
+    'Propagators'    : Enum('Propagators', ['RowByRow', 'ColByCol', 'Spiral', 'Minispiral', 'Nanospiral', 'Triangle', 'TriangleCol', 'Tile']),
+    'Features'       : Enum('Features', ['bandwidth', 'centroid', 'energy', 'flatness', 'flux', 'power', 'yin', 'zcr', 'contrast', 'melspect', 'mfcc', 'mfcc_d', 'mfcc_d2'], start = 0),
 })
-Config.update([('FeaturePlotOrder', list({Config['Features'].bandwidth.value, Config['Features'].centroid.value, Config['Features'].yin.value,  Config['Features'].zcr.value, Config['Features'].energy.value, Config['Features'].power.value, Config['Features'].flatness.value, Config['Features'].flux.value,            Config['Features'].melspect.value, Config['Features'].mfcc.value, Config['Features'].mfcc_d.value, Config['Features'].mfcc_d2.value, Config['Features'].contrast.value}))])
+Config.update([('FeaturePlotOrder', list({Enums['Features'].bandwidth.value, Enums['Features'].centroid.value, Enums['Features'].yin.value,  Enums['Features'].zcr.value, Enums['Features'].energy.value, Enums['Features'].power.value, Enums['Features'].flatness.value, Enums['Features'].flux.value,            Enums['Features'].melspect.value, Enums['Features'].mfcc.value, Enums['Features'].mfcc_d.value, Enums['Features'].mfcc_d2.value, Enums['Features'].contrast.value}))])
 
 # Helper functions:
 def Digits(Num):
@@ -52,52 +53,6 @@ def Digits(Num):
 def DictKey(Dict, Index):
     Key = list(Dict.keys())[list(Dict.values()).index(Index)]
     return Key
-
-# Multiprocessing helper functions
-
-def PickWorkerID(*, List):
-    Index = 0
-    while List[Index] == '':
-        Index = Index + 1
-    ReturnID = List[Index]
-    List[Index] = ''
-    return (Index, ReturnID)
-
-def WorkerTest(Word, TaskID):
-    print('[Debug] Testing worker ' + str(WorkerMemory['ID']) + '(' + str(WorkerMemory['Number']) + '); Word: ' + str(Word) + '; TaskID: ' + str(TaskID) + '.', flush = True)
-    CloseSharedMemory()
-    return (Word, TaskID, WorkerMemory['ID'])
-
-def CloseSharedMemory():
-    global DatasetMemory
-    global ResultMemory
-    DatasetMemory.close()
-    ResultMemory.close()
-    return
-
-def WorkerSetup(SharedList, Shape, Table):
-    global WorkerMemory
-    global DatasetMemory
-    global ResultMemory
-    global SharedDataset
-    global SharedResult
-    global WordIDTable
-    WorkerParams  = PickWorkerID(List = SharedList)
-    WorkerNumber  = WorkerParams[0]
-    WorkerID      = WorkerParams[1]
-    DatasetMemory = multiprocessing.shared_memory.SharedMemory('DatasetMem')
-    ResultMemory  = multiprocessing.shared_memory.SharedMemory('ResultMem')
-    SharedDataset = numpy.ndarray(shape = Shape, dtype = numpy.double, buffer = DatasetMemory.buf)
-    SharedResult  = numpy.ndarray(shape = Shape, dtype = numpy.double, buffer = ResultMemory.buf)
-    WordIDTable   = Table
-    WorkerProcess = multiprocessing.current_process()
-    ParentProcess = multiprocessing.parent_process()
-    PID           = WorkerProcess.pid
-
-    print('[Info] Worker number / ID: ' + str(WorkerNumber) + ' / ' + str(WorkerID) + '; with name: ' + str(WorkerProcess.name) + '; and parent / worker PID: ' + str(ParentProcess.pid) + ' / ' + str(PID) + '; has spawned.', flush = True)
-
-    WorkerMemory = dict({'Number': WorkerNumber, 'ID': WorkerID, 'PID': PID})
-    return
 
 # Data processing functions:
 
@@ -290,6 +245,7 @@ def ParseMetadata(Metadata):
             + ('{:<' + str(Digits(SpeakerCount))       + '}').format(str(SpeakerWordList[WordNum]))  + ' speakers.')
             Snippets = Snippets + len(WordIDTable[WordNum])
 
+    WordDict.update([('noise', 21)]) # temp hack
     Tables = dict({'WordIDTable'   : WordIDTable,
                    'WordSpeakers'  : WordSpeakers,
                    'OtherSeqs'     : OtherSeqs,
@@ -640,18 +596,23 @@ def PartitionDataset(Tables):#, WordSpeakers, MaxWordLen, WordDict, WordCount, S
     
 #def FindOutliers:
     
-#def BuildValidationVectors(WordIDTable):
-#    TrainingWordNums = [2, 4, 5, 6, 8, 9, 11, 12, 15, 19] # compute from config enum
-#    VectorLength = len(TrainingWordNums)
-#    Index = 0
-#    for Word in range WordCount:
-#        Length = len(WordIDTable[Word])
-#        array = numpy.zeros(shape = (VectorLength, Length), dtype = numpy.double)
-#        for Snippet in range(Length):
-#            for Element in range(VectorLength):
-#                if Word == TrainingWordNums[Index]:
-#                    array[Snippet][Index] = 1.0
-#        numpy.save(array)
+def BuildValidationVectors(WordCount, DatasetTables, WordDict):
+    TrainingWordNums = [2, 4, 5, 6, 8, 9, 11, 12, 15, 19] # compute from config enum
+    DatasetStr = ['Train', 'Test', 'Valid']
+    
+    VectorLength = len(TrainingWordNums)
+    #Index = 0
+    for Dataset in range(len(DatasetTables)):
+        for WordNum in range(WordCount + 2):
+            Length = len(DatasetTables[Dataset][WordNum])
+            array = numpy.zeros(shape = (Length, VectorLength), dtype = numpy.double)
+            for Snippet in range(Length):
+                for Element in range(VectorLength):
+                    if WordNum == TrainingWordNums[Element]:
+                        array[Snippet][Element] = 1.0
+            Filename = 'Vectors-' + DatasetStr[Dataset] + '-' + DictKey(WordDict, WordNum)
+            print('[Info] Writing ' + Filename + '...')
+            numpy.save(file = Filename, arr = array)
 # the final classifier needs a linear list of arrays for data and expected output
     
 #degrades the validation dataset to check how robust the model ist
@@ -661,22 +622,86 @@ def PartitionDataset(Tables):#, WordSpeakers, MaxWordLen, WordDict, WordCount, S
 #def ConcatRawSnippets:
 
 # performs various triangle & spiral decompositions to preprocess 2d data
-#def LineariseData(Matrix, Propagator = Config['Propagators'].Nanospiral.value):
+def LineariseData(Matrix, Propagator = Enums['Propagators'].Nanospiral.value):
 #column, row, spiral, minispiral, nanospiral, triangle, column triangle, frequency rectangles (fft, high frequency regions get subdivided into small squares)
-    #XTile = 0
-    #YTile = 0
-    #XTilesRemaining = len(Matrix)
-    #YTilesRemaining = len(Matrix[0])
+    XTile = 0
+    YTile = 0
+    PatternXDim = 1
+    PatternYDim = 1
+    XTilesRemaining = Matrix.shape[0] / PatternXDim
+    YTilesRemaining = Matrix.shape[1] / PatternYDim
+    #LinearData = numpy.ndarray(shape = Matrix.shape[0] * Matrix.shape[1])
+    LinearData = numpy.ravel(Matrix)
+
 
     #def Propagate():
     
-    #def WritePattern:
+    #def WritePattern():
+        
     #while(XTilesRemaining > 0):
     #    while(YTilesRemaining > 0):
     #        WritePattern()
     #        Propagate()
+    return LinearData
 
 
+
+def BuildDatasets(WordNum, TaskID, iMems, DatasetTables):
+    FrameCount = 44
+    # 2D arrays to create for each snippet:
+    # contrast (8  x 44)
+    # melspect (64 x 44)
+    # mfcc     (32 x 44)
+    # mfcc_d   (32 x 44)
+    # mfcc_d2  (32 x 44)
+    def Reconstruct2DFeature(SnippetID, Feature, Features, FrameCount, Mem, MemIdx):
+        ArrayYDim  = 0
+        Offset     = 0
+
+        match Feature:
+            case Features.contrast.value:
+                ArrayYDim = 8
+                Offset    = 2
+            case Features.melspect.value:
+                ArrayYDim = 64
+                Offset    = 12
+            case Features.mfcc.value:
+                ArrayYDim = 32
+                Offset    = 76
+            case Features.mfcc_d.value:
+                ArrayYDim = 32
+                Offset    = 108
+            case Features.mfcc_d2.value:
+                ArrayYDim = 32
+                Offset    = 140
+    
+        #ReturnArray = numpy.zeros((FrameCount, ArrayYDim))
+        Buffer = numpy.zeros((FrameCount, ArrayYDim))
+        # try to operate directly in imems
+        for TimeIndex in range(FrameCount):
+            for FeatureIndex in range(ArrayYDim):
+                Buffer[TimeIndex][FeatureIndex] = SharedDataset[SnippetID][Offset + FeatureIndex][TimeIndex]
+        Buffer = LineariseData(Buffer)
+        for Val in range(len(Buffer)):
+            Mem[1][MemIdx][Val] = Buffer[Val]
+    
+        return
+    #lMem = WorkerMemory['Mems'][WordNum]
+    lMem = iMems[WordNum]
+    for MemIdx, SnippetNum in zip(range(len(DatasetTables[0][WordNum])), DatasetTables[0][WordNum]):
+        Reconstruct2DFeature(SnippetNum, Enums['Features'].melspect.value, Enums['Features'], FrameCount, lMem[0], MemIdx) # Train
+        Reconstruct2DFeature(SnippetNum, Enums['Features'].mfcc_d2.value, Enums['Features'], FrameCount, lMem[3], MemIdx) # Train
+        #Reconstruct2DFeature(SnippetNum, Enums['Features'].zcr.value, Enums['Features'], FrameCount, lMem[6], MemIdx) # Train
+    for MemIdx, SnippetNum in zip(range(len(DatasetTables[1][WordNum])), DatasetTables[1][WordNum]):
+        Reconstruct2DFeature(SnippetNum, Enums['Features'].melspect.value, Enums['Features'], FrameCount, lMem[1], MemIdx) # Test
+        Reconstruct2DFeature(SnippetNum, Enums['Features'].mfcc_d2.value, Enums['Features'], FrameCount, lMem[4], MemIdx)# Test
+        #Reconstruct2DFeature(SnippetNum, Enums['Features'].zcr.value, Enums['Features'], FrameCount, lMem[7], MemIdx) # Test
+    for MemIdx, SnippetNum in zip(range(len(DatasetTables[2][WordNum])), DatasetTables[2][WordNum]):
+        Reconstruct2DFeature(SnippetNum, Enums['Features'].melspect.value, Enums['Features'], FrameCount, lMem[2], MemIdx) # Test
+        Reconstruct2DFeature(SnippetNum, Enums['Features'].mfcc_d2.value, Enums['Features'], FrameCount, lMem[5], MemIdx)# Test
+        #Reconstruct2DFeature(SnippetNum, Enums['Features'].zcr.value, Enums['Features'], FrameCount, lMem[7], MemIdx) # Test
+    #return (WordNum, TaskID, WorkerMemory['ID'])
+    return (WordNum, TaskID)
 # Auxiliary functions
 def GetETA(*, Rebase = False, Workload = 1):
     global RefTimestamp
@@ -702,11 +727,68 @@ def GetETA(*, Rebase = False, Workload = 1):
     ReturnString = '; progress: ' + pDoneStr + ' %; ETA: ' + ETAstr + ' sec ; elapsed ' + tElapsedStr + ' sec.'
     #return some sort of object with the two strings
 
+# Multiprocessing helper functions
 
+def PickWorkerID(*, List):
+    Index = 0
+    while List[Index] == '':
+        Index = Index + 1
+    ReturnID = List[Index]
+    List[Index] = ''
+    return (Index, ReturnID)
+
+def WorkerTest(Word, TaskID):
+    print('[Debug] Testing worker ' + str(WorkerMemory['ID']) + '(' + str(WorkerMemory['Number']) + '); Word: ' + str(Word) + '; TaskID: ' + str(TaskID) + '.', flush = True)
+    CloseSharedMemory()
+    return (Word, TaskID, WorkerMemory['ID'])
+
+def CloseSharedMemory():
+    for Memory in WorkerMemory['SharedMems']:
+        Memory.close()
+    global DatasetMemory
+
+    DatasetMemory.close()
+
+    return
+
+def WorkerSetup(SharedList, pMems, DatasetTables, DatasetShape):
+    global WorkerMemory
+    global DatasetMemory # global for <CloseSharedMemory()>
+    global SharedDataset
+
+    global wDatasetTables
+    wDatasetTables = DatasetTables
+    
+    Mems          = list()
+    WorkerParams  = PickWorkerID(List = SharedList)
+    WorkerNumber  = WorkerParams[0]
+    WorkerID      = WorkerParams[1]
+    DatasetMemory = multiprocessing.shared_memory.SharedMemory(name = 'DatasetMem')
+    SharedDataset = numpy.ndarray(shape = DatasetShape, dtype = numpy.double, buffer = DatasetMemory.buf)
+
+    for WordNum in range(len(pMems)):
+        Mems.append(list())
+        for Mem in pMems[WordNum]:
+            Shared = multiprocessing.shared_memory.SharedMemory(name = Mem[0])
+            Numpy  = numpy.ndarray(shape = Mem[1], dtype = numpy.double, buffer = Shared.buf)
+            Mems[WordNum].append(tuple([Shared, Numpy]))
+
+    TrainingSnippets   = DatasetTables[0]
+    TestingSnippets    = DatasetTables[1]
+    ValidationSnippets = DatasetTables[2]
+    WorkerProcess = multiprocessing.current_process()
+    ParentProcess = multiprocessing.parent_process()
+    PID           = WorkerProcess.pid
+
+    print('[Info] Worker number / ID: ' + str(WorkerNumber) + ' / ' + str(WorkerID) + '; with name: ' + str(WorkerProcess.name) + '; and parent / worker PID: ' + str(ParentProcess.pid) + ' / ' + str(PID) + '; has spawned.', flush = True)
+
+    WorkerMemory = dict({'Number': WorkerNumber, 'ID': WorkerID, 'PID': PID, 'Mems': Mems})
+    return
 
 def Main():
     global DatasetMemory
-    global ResultMemory
+
+    #global WorkerDict
     WorkerDict = dict()
     # goto parent dir
     WorkingDir = os.path.dirname(os.path.abspath(__file__))
@@ -720,9 +802,10 @@ def Main():
     # Order the dataset with the given metadata
     Tables    = ParseMetadata(Metadata)
     WordCount = Tables['WordCount']
+    WordDict  = Tables['WordDict']
 
-    PartitionDataset(Tables)
-
+    DatasetTables = PartitionDataset(Tables)
+    BuildValidationVectors(WordCount, DatasetTables, WordDict)
     # Helper functions
     def GenerateWorkerID(WorkerCount):
         for Index in range(WorkerCount):
@@ -754,25 +837,68 @@ def Main():
             case 1:
                 String = 'Reordering feature data'
         
-        ETAString = GetETA(Rebase = False, Workload = len(WordIDTable[Word]) / len(WordIDTable))
+        #ETAString = GetETA(Rebase = False, Workload = len(WordIDTable[Word]) / len(WordIDTable))
         # log here
+
+
 
     # Setup a worker pool
     Stage         = 1
 
     # Allocate & setup shared memory
-    BlowupFactor  = 5 # todo compute actual size of all new numpy features (derivatives and what not). do this per snippet and then multiply by snippet count + safety factor
-    # out of memory guard, cancel execution of system memory is too small
+    BlowupFactor  = 1 # todo compute actual size of all new numpy features (derivatives and what not). do this per snippet and then multiply by snippet count + safety factor
+        # out of memory guard, cancel execution of system memory is too small
     DatasetMemory = multiprocessing.shared_memory.SharedMemory(name = 'DatasetMem', create = True, size = Dataset.nbytes)
+    global SharedDataset
     SharedDataset = numpy.ndarray(shape = Dataset.shape, dtype = Dataset.dtype, buffer = DatasetMemory.buf)
     numpy.copyto(dst = SharedDataset, src = Dataset, casting = 'safe')
     print('[Info] Copied the source dataset to shared memory.')
     print(DatasetMemory.buf) # memory view object documentation
     del(Dataset) # Mark the now duplicate dataset obsolete to reclaim some memory
 
-    ResultMemory  = multiprocessing.shared_memory.SharedMemory(name = 'ResultMem',  create = True, size = (SharedDataset.nbytes * BlowupFactor))
-    print(ResultMemory.buf)
-    SharedResult  = numpy.ndarray(shape = SharedDataset.shape, dtype = SharedDataset.dtype, buffer = ResultMemory.buf)
+    Mems = list()
+    for WordNum in range(WordCount + 2):
+        Mems.append(list())
+        #for Dataset in range(2):
+            #for Feature in range(2):
+        Shape = tuple([len(DatasetTables[0][WordNum]), 44 * 64])
+        String = 'ResultMemory-' + DictKey(WordDict, WordNum) + '-' + 'Train' + '-' + 'Melspect'
+        Mems[WordNum].append(tuple([String, Shape]))
+        Shape = tuple([len(DatasetTables[1][WordNum]), 44 * 64])
+        String = 'ResultMemory-' + DictKey(WordDict, WordNum) + '-' + 'Test' + '-' + 'Melspect'
+        Mems[WordNum].append(tuple([String, Shape]))
+        Shape = tuple([len(DatasetTables[2][WordNum]), 44 * 64])
+        String = 'ResultMemory-' + DictKey(WordDict, WordNum) + '-' + 'Validate' + '-' + 'Melspect'
+        Mems[WordNum].append(tuple([String, Shape]))
+        
+        Shape = tuple([len(DatasetTables[0][WordNum]), 44 * 32])
+        String = 'ResultMemory-' + DictKey(WordDict, WordNum) + '-' + 'Train' + '-' + 'MFCC'
+        Mems[WordNum].append(tuple([String, Shape]))
+        Shape = tuple([len(DatasetTables[1][WordNum]), 44 * 32])
+        String = 'ResultMemory-' + DictKey(WordDict, WordNum) + '-' + 'Test' + '-' + 'MFCC'
+        Mems[WordNum].append(tuple([String, Shape]))
+        Shape = tuple([len(DatasetTables[2][WordNum]), 44 * 32])
+        String = 'ResultMemory-' + DictKey(WordDict, WordNum) + '-' + 'Validate' + '-' + 'MFCC'
+        Mems[WordNum].append(tuple([String, Shape]))
+        
+        Shape = tuple([len(DatasetTables[0][WordNum]), 44 * 44])
+        String = 'ResultMemory-' + DictKey(WordDict, WordNum) + '-' + 'Train' + '-' + 'ZcrBand'
+        Mems[WordNum].append(tuple([String, Shape]))
+        Shape = tuple([len(DatasetTables[1][WordNum]), 44 * 44])
+        String = 'ResultMemory-' + DictKey(WordDict, WordNum) + '-' + 'Test' + '-' + 'ZcrBand'
+        Mems[WordNum].append(tuple([String, Shape]))
+        Shape = tuple([len(DatasetTables[2][WordNum]), 44 * 44])
+        String = 'ResultMemory-' + DictKey(WordDict, WordNum) + '-' + 'Validate' + '-' + 'ZcrBand'
+        Mems[WordNum].append(tuple([String, Shape]))
+
+    iMems = list() #initialised mems
+    for WordNum in range(len(Mems)):
+        iMems.append(list())
+        for Mem in Mems[WordNum]:
+            Shared = multiprocessing.shared_memory.SharedMemory(name = Mem[0], create = True, size = (Mem[1][0] * Mem[1][1]) * 8)
+            print('Created buffer ' + str(((Mem[1][0] * Mem[1][1]) * 8) / 1048576) + ' MiB long')
+            Numpy  = numpy.ndarray(shape = Mem[1], dtype = numpy.double, buffer = Shared.buf)
+            iMems[WordNum].append(tuple([Shared, Numpy]))
     
     # note for many shared arrays: (which is the better approach!:) due to the difficulties of passing data to one individual worker via the initialiser and due to the fact that i dont know which worker gets which tasks, the best way would be to setup the shared mem at the bebinning of each workers task function with a known name (so resultMemory-21-2) for word 21 and feature 2
     # will need resultmem 1-22, features 1-3 (spect, mfccd2, zcr - bandwidth 2d merge)
@@ -784,24 +910,36 @@ def Main():
     WorkerIDs   = list(GenerateWorkerID(WorkerCount))
     SManager    = multiprocessing.Manager()
     SharedList  = SManager.list(WorkerIDs)
-    Workers     = multiprocessing.Pool(processes = WorkerCount, initializer = WorkerSetup, initargs = (SharedList, SharedDataset.shape, WordIDTable))
+    Workers     = multiprocessing.Pool(processes = WorkerCount, initializer = WorkerSetup, initargs = (SharedList, Mems, DatasetTables, SharedDataset.shape))
     print('[Info] Spawned ' + str(WorkerCount) + ' worker processes.')
     print(SharedList)
 
+    GetETA(Rebase = True) # Setup the reference timestamp
     Results       = list()
     TaskDict      = dict()
     # build a new list for words + noise + other. also build a list with the relative sizes (in % of total) for eta
-    for Word, TaskID in zip(range(WordCount), GenerateTaskID(Stage = Stage, TaskCount = WordCount, TaskDict = TaskDict)):
-        DeferredResult = Workers.apply_async(func = WorkerTest, args = (Word, TaskID), callback = TaskEvent)
+    for WordNum, TaskID in zip(range(WordCount + 2), GenerateTaskID(Stage = Stage, TaskCount = WordCount + 2, TaskDict = TaskDict)):
+        DeferredResult = Workers.apply_async(func = WorkerTest, args = (WordNum, TaskID), callback = TaskEvent)
+        #DeferredResult = Workers.apply_async(func = BuildDatasets, args = (WordNum, TaskID), callback = TaskEvent)
         Results.append(DeferredResult)
     
     [DeferredResult.wait() for DeferredResult in Results] # Wait for all workers to finish their assigned tasks.
 
-    print('Completed')
-    CloseSharedMemory()
+    for WordNum in range(WordCount + 2):
+        BuildDatasets(WordNum, 0, iMems, DatasetTables)
+        for Elem in range(len(iMems[WordNum])):
+            print('[Info] Writing ' + Mems[WordNum][Elem][0])
+            numpy.save(file = Mems[WordNum][Elem][0], arr = iMems[WordNum][Elem][1])
+
+    #PlotSummary()
+
+    for WordNum in range(WordCount + 2):
+        for Memory in [Tuple[0] for Tuple in iMems[WordNum]]:
+              Memory.close()
+    DatasetMemory.close()
     Workers.close()
     Workers.join()
-
+    print('Completed')
 
 # Entry
 if __name__ == '__main__':
