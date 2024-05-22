@@ -1,10 +1,67 @@
 \section{Classes \& Features}
 
 \subsection{Grouping of Words and "Other" Snippets}
-Detail the process of grouping the 20 keywords and audio snippets labeled as "Other." Explain the reasoning behind the chosen groupings.
+The grouping of the 20 keywords and audio snippets into categories was based on their semantic meaning and functionality. This categorization helped in simplifying the classification task by reducing the number of unique classes and aggregating similar concepts together. More general terms are placed in the Miscellaneous category to ensure that the model is not overwhelmed by too many specific categories. This regrouping of categories was applied only to the Random Forest classifier. For the CNN, the categorization labels were used as-is.
+
+\begin{table}
+  \caption{Grouping of Keywords}
+  \label{tab:keyword_grouping}
+  \centering
+  \begin{tabular}{ll}
+    \toprule
+    Keyword & Group Name \\
+    \midrule
+    Fernseher & Fernseher \\
+    Heizung & Heizung \\
+    Lüftung & Lüftung \\
+    Ofen & Ofen \\
+    Radio & Radio \\
+    Staubsauger & Staubsauger \\
+    Licht & Licht \\
+    Alarm & Alarm \\
+    an & Command an \\
+    aus & Command aus \\
+    warm, offen & Status \\
+    Leitung, Spiegel, Brötchen, Haus, Schraube & Objects \\
+    kann, nicht, wunderbar, other & Miscellaneous \\
+    \bottomrule
+  \end{tabular}
+\end{table}
 
 \subsection{Subset of Selected Features}
-List and describe the subset of features selected for the analysis. Explain the feature selection process.
+For the Random Forest classifier, we found that including all available features yielded the best model performance compared to using different feature subsets. Standardizing the features by removing the mean and scaling to unit variance using a standard scaler resulted in a noticeable, though not substantial, improvement in model performance. Applying log transformation to the skewed features identified in the previous assignment did not lead to noticeable improvements in model performance and may have even slightly worsened the results.
 
 \subsection{Preprocessing Steps}
-Describe any preprocessing steps applied to the data (e.g., normalization, noise reduction). Explain why these preprocessing steps were necessary.
+Various preprocessing steps were applied to the data to enhance the quality and effectiveness of the models.
+
+\subsubsection{Random Forest and Nearest Neighbour}
+For the Random Forest and Nearest Neighbour classifiers, the precompiled derived features provided in the development file were utilized. These features were preprocessed as follows:
+\begin{itemize}
+    \item \textbf{Standardization}: The features were standardized by removing the mean and scaling to unit variance using a standard scaler.
+    \item \textbf{Log Transformation}: Log transformation was applied to skewed features, though this did not significantly improve performance.
+\end{itemize}
+
+\subsubsection{Convolutional Neural Networks (CNN)}
+Unlike the other classifiers, the CNN methodology focused solely on raw WAV files, bypassing precompiled feature information to test the effectiveness of raw audio data in training a performant model. The preprocessing steps for the CNN included:
+\begin{itemize}
+    \item \textbf{Normalization}: The audio data was normalized to ensure that the features were on a similar scale, which is crucial for the effective training of the model.
+    \item \textbf{ICA for Noise Reduction}: Independent Component Analysis (ICA) was applied to reduce background noise and enhance signal quality. This step was particularly important for the CNN, which relies heavily on the quality of input data.
+\end{itemize}
+
+The CNN architecture consisted of:
+\begin{itemize}
+    \item \textbf{First Conv1D Layer}: 8 filters, kernel size of 13, ReLU activation, stride of 1, and input shape based on the training data.
+    \item \textbf{MaxPooling and Dropout}: MaxPooling1D with a pool size of 3 and a dropout rate of 0.3.
+    \item \textbf{Second Conv1D Layer}: 16 filters, kernel size of 11, ReLU activation, stride of 1.
+    \item \textbf{MaxPooling and Dropout}: MaxPooling1D with a pool size of 3 and a dropout rate of 0.3.
+    \item \textbf{Third Conv1D Layer}: 32 filters, kernel size of 9, ReLU activation, stride of 1.
+    \item \textbf{MaxPooling and Dropout}: MaxPooling1D with a pool size of 3 and a dropout rate of 0.3.
+    \item \textbf{Fourth Conv1D Layer}: 64 filters, kernel size of 7, ReLU activation, stride of 1.
+    \item \textbf{MaxPooling and Dropout}: MaxPooling1D with a pool size of 3 and a dropout rate of 0.3.
+    \item \textbf{Flatten Layer}: Flattens the input.
+    \item \textbf{First Dense Layer}: 256 units, ReLU activation, dropout rate of 0.3.
+    \item \textbf{Second Dense Layer}: 128 units, ReLU activation, dropout rate of 0.3.
+    \item \textbf{Output Layer}: Softmax activation with units equal to the number of classes.
+\end{itemize}
+
+The training process involved splitting the data into training (70\%), validation (15\%), and test (15\%) sets, using the Adam optimizer with a learning rate set by default. The model was compiled with categorical cross-entropy loss and trained for 20 epochs with a batch size of 32. This puristic approach to using raw audio signals proved highly effective, achieving superior performance compared to the other classifiers.
