@@ -1,10 +1,61 @@
 \section{Analysis of Realistic Scenes}
 
 \subsection{Qualitative Evaluation of Best Classifier}
-Listen to the provided scenes and inspect classifier predictions. Assess how well the classifier recognizes keywords.
+To evaluate the performance of the CNN classifier in realistic scenarios, we analyzed several provided scenes containing various keywords and background noise. The classifier's predictions were compared to the actual keywords spoken in these scenes to assess its recognition capabilities.
+
+\textbf{Observations:}
+\begin{itemize}
+    \item The CNN classifier successfully recognized most of the keywords, even in the presence of moderate background noise.
+    \item Keywords such as "Alarm", "Radio", and "Staubsauger" were consistently recognized with high accuracy.
+    \item Some misclassifications were observed in cases where keywords had similar phonetic structures, such as "Ofen" and "offen".
+\end{itemize}
 
 \subsection{Problematic Conditions and Solutions}
-Identify problematic conditions causing misrecognition or misprediction of keywords. Suggest potential solutions to alleviate these issues.
+Several conditions were identified that caused misrecognition or misprediction of keywords by the CNN classifier:
+
+\textbf{Problematic Conditions:}
+\begin{itemize}
+    \item \textbf{High Background Noise:} In scenes with high levels of background noise, the classifier's accuracy decreased.
+    \item \textbf{Similar Sounding Keywords:} Keywords with similar phonetic structures, such as "Ofen" and "offen", were often misclassified.
+    \item \textbf{Phonetically Close Keywords:} Pairs like "Licht" and "nicht", "Haus" and "aus", and "Ofen" and "offen" were often mismatched even in "clinical" settings after ICA processing.
+    \item \textbf{Varied Speaker Accents:} Different accents or pronunciations of keywords led to reduced accuracy in some cases.
+\end{itemize}
+
+\textbf{Potential Solutions:}
+\begin{itemize}
+    \item \textbf{Enhanced Preprocessing:} Implementing advanced noise reduction techniques could help mitigate the impact of background noise.
+    \item \textbf{Data Augmentation:} Augmenting the training dataset with variations of similar sounding keywords and different accents could improve the classifier's robustness.
+    \item \textbf{Phonetic Distinction:} Incorporating phonetic features into the model could help distinguish between similarly sounding keywords.
+    \item \textbf{Advanced Model Architectures:} Exploring more sophisticated model architectures, such as attention mechanisms, to better capture subtle differences between phonetically similar keywords.
+\end{itemize}
 
 \subsection{Visualization of Findings}
-Use spectrograms and prediction sequences to illustrate interesting findings. Highlight both positive and negative cases.
+To illustrate the classifier's performance and highlight interesting findings, we used spectrograms and prediction sequences of the analyzed scenes.
+
+\textbf{Spectrograms and Prediction Sequences:}
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[scale=0.5]{fig/spectrogram_example.png}
+    \caption{Spectrogram of a scene with high background noise}
+    \label{fig:spectrogram_example}
+\end{figure}
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[scale=0.5]{fig/prediction_sequence_example.png}
+    \caption{Prediction sequence for a scene containing multiple keywords}
+    \label{fig:prediction_sequence_example}
+\end{figure}
+
+\textbf{Positive Cases:}
+\begin{itemize}
+    \item The classifier accurately predicted keywords such as "Alarm" and "Radio" in scenes with moderate background noise.
+    \item High confidence scores were observed for correctly recognized keywords, indicating strong model confidence.
+\end{itemize}
+
+\textbf{Negative Cases:}
+\begin{itemize}
+    \item Misclassification of "Ofen" as "offen" in noisy environments highlights the need for improved phonetic distinction.
+    \item Frequent mismatches of phonetically close keyword pairs such as "Licht" and "nicht", "Haus" and "aus", and "Ofen" and "offen" even in clean settings.
+    \item Inconsistent recognition of keywords with varied accents suggests a need for more diverse training data.
+\end{itemize}

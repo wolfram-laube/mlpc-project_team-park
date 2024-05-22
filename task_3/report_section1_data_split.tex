@@ -1,11 +1,20 @@
-\section{Data Split}
+\section{Data Preprocessing}
+    \subsection{Data Split}
+        The dataset consisted of raw audio recordings of various spoken commands, provided as WAV files. In addition to the raw audio data, a development file containing precompiled derived features was also provided. The data preprocessing involved several critical steps to ensure the quality and consistency of the inputs for the classifiers.
 
-\subsection{Description of Data Split for Model Selection and Hyperparameter Tuning}
-Discuss how the dataset is divided into training, validation, and test sets. Explain the rationale behind the chosen split method.
+        \subsubsection{Training, Validation, and Test Split}
+            The data was split into three distinct sets to facilitate robust evaluation of the classifiers:
+            \begin{itemize}
+                \item \textbf{Training Set}: Comprised 70\% of the total dataset and was used to train the models.
+                \item \textbf{Validation Set}: Comprised 15\% of the total dataset and was used to tune hyperparameters and prevent overfitting.
+                \item \textbf{Test Set}: Comprised 15\% of the total dataset and was used to evaluate the final performance of the models.
+            \end{itemize}
 
-\subsection{Avoidance of Information Leakage}
-Describe measures taken to prevent information leakage between sets. Mention any specific strategies used.
+        \subsubsection{Normalization}
+            The audio data was normalized to ensure that the features are on a similar scale, which is crucial for the effective training of the models.
 
-\subsection{Deriving Unbiased Performance Estimates}
-Hyperparameter Tuning was conducted by training the classifier on different hyperparameters, notably the number of estimators and maximum depth. The accuracy scores were plotted and examined visually to choose the optimal hyperparameters.
-The final model was then evaluated on the held-out test set, which had not been used during the training or validation phases. This approach provides an unbiased estimate of the model's performance on unseen data.
+        \subsubsection{ICA for Noise Reduction}
+            Independent Component Analysis (ICA) was applied to reduce background noise and enhance signal quality. This step was particularly important for the CNN, which relies heavily on the quality of input data.
+
+        \subsubsection{Precompiled Features}
+            The development file contained a set of precompiled derived features for each audio recording. The shape of the provided feature set was (45296, 175, 44), representing 45296 samples with 175 features each spread across 44 time frames. These features were used by some of the classifiers to improve performance.
