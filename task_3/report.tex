@@ -44,14 +44,19 @@
 \maketitle
 
 \begin{abstract}
-A brief summary of the project, methodologies, and findings.
+This report details the experiments conducted for speech command recognition using various classifiers. Initially, three classifiers were considered: Random Forest, Convolutional Neural Network (CNN), and K-Nearest Neighbour (KNN). As the experiments progressed, it became evident that KNN would not be a serious contender compared to Random Forest and CNN due to its lower performance. Consequently, the focus was shifted entirely to evaluating Random Forest and CNN. This report covers the methodologies, preprocessing steps, and performance evaluations of the selected classifiers, leading to the conclusion that the CNN model demonstrated superior performance.
 \end{abstract}
+
+\section{Introduction}
+Speech command recognition is a crucial aspect of human-computer interaction, enabling users to control systems through voice commands. This project aims to evaluate different classifiers for speech command recognition using a dataset of audio recordings. Initially, we considered three classifiers: Random Forest, Convolutional Neural Network (CNN), and K-Nearest Neighbour (KNN).
+
+As the level of concretization increased during our experiments, it became clear that KNN was not a serious contender against Random Forest and CNN. The performance gains achieved by Random Forest and CNN were significantly higher and more promising. Given the time constraints and the need to provide a meaningful comparison, we decided to eliminate the KNN classifier from further evaluation. Continuing to evaluate and document a classifier with relatively lower performance was deemed inefficient and would not contribute significantly to the overall findings. Thus, the focus of this report is on the Random Forest and CNN classifiers.
 
 \begin{contributions}
   Section 1: Data Split: Wolfram Laube \AND
   Section 2: Classes & Features: Daniel Hörtenhuber \AND
   Section 3: Evaluation: Oliver König \AND
-  Section 4: Experiments: Each team member on their classifier \AND
+  Section 4: Experiments: Collaborative \AND
   Section 5: Analysis of Realistic Scenes: Collaborative
 \end{contributions}
 
@@ -60,8 +65,6 @@ A brief summary of the project, methodologies, and findings.
 \input{report_section3_evaluation}
 \input{report_section4_experiments}
 \input{report_section5_realistic_scenes}
-
-\section{Conclusion}
-Summary of findings and future research directions.
+\input{report_section6_conclusion}
 
 \end{document}

@@ -1,0 +1,7 @@
+/task_3/preprocessed_data/
+/out/
+/dataset/development.npy
+/dataset/development_matlab.zip
+/dataset/development_numpy.zip
+/dataset/MLPC24_speech_commands_raw_waveforms.zip
+/dataset/words/

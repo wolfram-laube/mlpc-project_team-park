@@ -1,4 +1,4 @@
-%! Author = [Your Name]
+%! Author = Team Park
 %! Date = \today
 
 % Preamble
@@ -20,10 +20,10 @@
 
 \begin{frame}{Introduction and Data Preprocessing}
   \begin{itemize}
-    \item \textbf{CNN Overview:} CNNs are deep learning models effective in feature extraction from raw data, ideal for spectrograms.
+    \item \textbf{CNN Overview:} CNNs are deep learning models effective in feature extraction from raw data.
     \item \textbf{Data Preprocessing:}
       \begin{itemize}
-        \item \textit{Spectrogram Conversion}: Converting raw audio into spectrograms for input into the CNN.
+        \item \textit{Normalization}: Scaling audio data to ensure features are on a similar scale.
         \item \textit{ICA for Noise Reduction}: Applying Independent Component Analysis to reduce background noise and improve signal quality.
       \end{itemize}
   \end{itemize}
@@ -33,8 +33,9 @@
   \begin{itemize}
     \item \textbf{CNN Architecture:}
       \begin{itemize}
-        \item \textit{Layers}: Convolutional layers, pooling layers, fully connected layers.
-        \item \textit{Key Hyperparameters}: Filter sizes, number of layers, activation functions.
+        \item \textit{Layers}: Four Conv1D layers, each followed by max pooling and dropout layers.
+        \item \textit{Filters and Kernel Sizes}: Increasing number of filters and decreasing kernel sizes across layers.
+        \item \textit{Dense Layers}: Two dense layers with dropout, leading to the output layer.
       \end{itemize}
     \item \textbf{Training Process:}
       \begin{itemize}
@@ -49,9 +50,38 @@
     \item \textbf{Evaluation Metrics:} Accuracy, precision, recall, F1-score.
     \item \textbf{Results:}
       \begin{itemize}
-        \item Performance on the test set: Accuracy of X\%, F1-score of Y\%.
-        \item Comparison: Briefly mention how it stacks up against Random Forest and Nearest Neighbour.
+        \item \textbf{Validation Set:}
+          \begin{itemize}
+            \item Accuracy: 92.28\%
+            \item Precision: 92.75\%
+            \item Recall: 92.28\%
+            \item F1-score: 92.21\%
+          \end{itemize}
+        \item \textbf{Comparison with Random Forest:}
+          \begin{itemize}
+            \item Accuracy 91\%
+            \item Precision: 93\%
+            \item Recall: 88\%
+            \item F1-score 90\%
+          \end{itemize}
       \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Confusion Matrix and Learning Curves}
+  \begin{itemize}
+    \item \textbf{Confusion Matrix:}
+      \begin{figure}
+        \centering
+        \includegraphics[width=0.8\textwidth]{fig/confusion_matrix.png}
+        \caption{Confusion Matrix for 1D CNN}
+      \end{figure}
+    \item \textbf{Learning Curves:}
+      \begin{figure}
+        \centering
+        \includegraphics[width=0.8\textwidth]{fig/learning_curves_accuracy.png}
+        \caption{Learning Curves for 1D CNN (Accuracy)}
+      \end{figure}
   \end{itemize}
 \end{frame}
 
@@ -60,7 +90,7 @@
     \item \textbf{Qualitative Analysis:} Performance on realistic scenes, highlighting strengths like noise handling and any observed weaknesses.
     \item \textbf{Conclusion and Future Work:}
       \begin{itemize}
-        \item \textit{Summary}: CNN achieved high accuracy and robustness.
+        \item \textit{Summary}: The CNN achieved high accuracy and robustness.
         \item \textit{Future Improvements}: Enhancing the model architecture, experimenting with different preprocessing techniques.
       \end{itemize}
   \end{itemize}
