@@ -1,7 +1,7 @@
 import pandas as pd
 
 # Load the CSV file to inspect its structure
-file_path = '../dataset/development.csv'  # Update with your actual file path
+file_path = '../dataset/words/meta/development.csv'  # Update with your actual file path
 metadata = pd.read_csv(file_path)
 
 # Display the first few rows of the metadata
@@ -17,7 +17,7 @@ import librosa
 root_dir = '../dataset'  # Replace <root> with the actual path to your root directory
 
 # Load the CSV file
-file_path = '../dataset/development.csv'  # Update with your actual file path
+file_path = '../dataset/words/meta/development.csv'  # Update with your actual file path
 metadata = pd.read_csv(file_path)
 
 # Function to load a WAV file using the full path
@@ -52,7 +52,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 root_dir = '../dataset'  # Update with your actual path to the dataset directory
 
 # Load the CSV file
-file_path = os.path.join(root_dir, 'development.csv')
+file_path = os.path.join(root_dir, 'words/meta/development.csv')
 metadata = pd.read_csv(file_path)
 
 
@@ -156,44 +156,3 @@ print(f'Validation set size: {len(X_val)}')
 print(f'Test set size: {len(X_test)}')
 
 ###############################################################
-
-import os
-import numpy as np
-
-
-# Function to load preprocessed data
-def load_preprocessed_data(preprocessed_dir):
-    X = []
-    y = []
-
-    for file_name in os.listdir(preprocessed_dir):
-        if file_name.startswith('audio'):
-            audio = np.load(os.path.join(preprocessed_dir, file_name))
-            label_file = file_name.replace('audio', 'label')
-            label = np.load(os.path.join(preprocessed_dir, label_file))
-
-            X.append(audio)
-            y.append(label)
-
-    return np.array(X), np.array(y)
-
-
-# Load preprocessed data
-preprocessed_dir = 'preprocessed_data'
-X, y = load_preprocessed_data(preprocessed_dir)
-
-print(f'Loaded {len(X)} preprocessed audio files.')
-print(f'Labels: {set(y)}')
-
-# Split data into training, validation, and test sets
-from sklearn.model_selection import train_test_split
-
-X_train, X_temp, y_train, y_temp = train_test_split(X, y, test_size=0.3, random_state=42)
-X_val, X_test, y_val, y_test = train_test_split(X_temp, y_temp, test_size=0.5, random_state=42)
-
-print(f'Training set size: {len(X_train)}')
-print(f'Validation set size: {len(X_val)}')
-print(f'Test set size: {len(X_test)}')
-
-
-
