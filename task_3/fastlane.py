@@ -8,7 +8,7 @@ data_dir = '../dataset'
 import pandas as pd
 
 # Load the CSV file to inspect its structure
-file_path = '../dataset/words/meta/development.csv'  # Update with your actual file path
+file_path = f'{data_dir}/words/meta/development.csv'  # Update with your actual file path
 metadata = pd.read_csv(file_path)
 
 # Display the first few rows of the metadata
@@ -21,10 +21,10 @@ import pandas as pd
 import librosa
 
 # Define the root directory where the dataset is located
-root_dir = '../dataset'  # Replace <root> with the actual path to your root directory
+root_dir = f'{data_dir}'  # Replace <root> with the actual path to your root directory
 
 # Load the CSV file
-file_path = '../dataset/words/meta/development.csv'  # Update with your actual file path
+file_path = f'{data_dir}/words/meta/development.csv'  # Update with your actual file path
 metadata = pd.read_csv(file_path)
 
 # Function to load a WAV file using the full path
@@ -56,7 +56,7 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Define the root directory where the dataset is located
-root_dir = '../dataset'  # Update with your actual path to the dataset directory
+root_dir = f'{data_dir}'  # Update with your actual path to the dataset directory
 
 # Load the CSV file
 file_path = os.path.join(root_dir, 'words/meta/development.csv')
