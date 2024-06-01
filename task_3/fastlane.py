@@ -1,3 +1,10 @@
+# Preamble: set up data root folder
+# Use this for local development:
+data_dir = '../dataset'
+# Use this for Colab:
+#data_dir = '/content/dataset'
+
+#######################################
 import pandas as pd
 
 # Load the CSV file to inspect its structure
