@@ -5,6 +5,23 @@ import librosa
 import matplotlib.pyplot as plt
 from keras.models import load_model
 
+import json
+from keras.models import load_model
+
+# Load the models
+word_model = load_model(f'{data_dir}/word_model.h5')
+command_model = load_model(f'{data_dir}/command_model.h5')
+
+# Load the class names
+with open(f'{data_dir}/word_class_names.json', 'r') as f:
+    word_class_names = json.load(f)
+
+with open(f'{data_dir}/command_class_names.json', 'r') as f:
+    command_class_names = json.load(f)
+
+print(f'Word Class Names: {word_class_names}')
+print(f'Command Class Names: {command_class_names}')
+
 # Function to pad or trim audio segments to a fixed length
 def pad_or_trim(segment, target_length):
     if len(segment) > target_length:
@@ -40,7 +57,8 @@ def process_audio_stream(audio, sample_rate, word_model, command_model, word_inp
             word_prediction = word_model(word_segment_tensor).detach().numpy()
 
         print(f'Word prediction: {word_prediction}')
-        predicted_word = np.argmax(word_prediction)  # Assuming the model returns class probabilities
+        predicted_word_idx = np.argmax(word_prediction)  # Assuming the model returns class probabilities
+        predicted_word = word_class_names[predicted_word_idx]  # Map index to class name
         print(f'Predicted word: {predicted_word}')
 
         # Store the word and its timestamp if it is a recognized word
@@ -65,7 +83,8 @@ def process_audio_stream(audio, sample_rate, word_model, command_model, word_inp
                     command_prediction = command_model(command_tensor).detach().numpy()
 
                 print(f'Command prediction: {command_prediction}')
-                predicted_command = np.argmax(command_prediction)
+                predicted_command_idx = np.argmax(command_prediction)
+                predicted_command = command_class_names[predicted_command_idx]  # Map index to class name
                 if predicted_command != 'unrecognized_command':  # Replace with your actual command class / negative detection
                     command_detections.append((word_buffer[0][0], ' '.join(words)))
                     word_buffer = []  # Clear the buffer after recognizing a command
