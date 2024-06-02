@@ -2,10 +2,10 @@ import os
 import random
 import numpy as np
 import librosa
-import matplotlib.pyplot as plt
-from keras.models import load_model
 import json
+import csv
 from tqdm import tqdm
+from keras.models import load_model
 
 # Configuration
 data_dir = '../dataset'
@@ -13,6 +13,9 @@ wav_dir = os.path.join(data_dir, 'scenes/wav')
 model_save_path = os.path.join(data_dir, 'command_model.h5')
 label_metadata_path = os.path.join(data_dir, 'command_class_names.json')
 num_files_to_process = 5  # Number of files to process
+output_csv = 'my_predictions.csv'
+window_size = 1.0  # Window size in seconds
+stride = 0.5  # Stride in seconds
 
 # Load the model
 model = load_model(model_save_path)
@@ -69,18 +72,24 @@ wav_files = [f for f in os.listdir(wav_dir) if f.endswith('.wav')]
 # Randomly select a subset of files to process
 selected_files = random.sample(wav_files, min(num_files_to_process, len(wav_files)))
 
-# Process each selected file
-for wav_file in tqdm(selected_files, desc="Processing files"):
-    file_path = os.path.join(wav_dir, wav_file)
-    audio, sample_rate = librosa.load(file_path, sr=None)
+# Process each selected file and write predictions to CSV
+with open(output_csv, 'w', newline='') as csvfile:
+    fieldnames = ['filename', 'command', 'timestamp']
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
 
-    # Get the expected input length for the model
-    input_length = model.input_shape[1]
+    for wav_file in tqdm(selected_files, desc="Processing files"):
+        file_path = os.path.join(wav_dir, wav_file)
+        audio, sample_rate = librosa.load(file_path, sr=None)
 
-    # Process the audio stream
-    detections = process_audio_stream(audio, sample_rate, model, input_length, stride=0.1)
+        # Get the expected input length for the model
+        input_length = model.input_shape[1]
 
-    # Output results
-    print(f"\nResults for {wav_file}:")
-    for detection in detections:
-        print(f"Detected command '{detection[1]}' at {detection[0]:.2f} seconds")
+        # Process the audio stream
+        detections = process_audio_stream(audio, sample_rate, model, input_length, window_size, stride)
+
+        # Write results to CSV
+        for detection in detections:
+            writer.writerow({'filename': wav_file, 'command': detection[1], 'timestamp': detection[0]})
+
+print(f"Predictions saved to {output_csv}")
