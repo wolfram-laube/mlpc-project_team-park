@@ -7,12 +7,16 @@ from sklearn.preprocessing import StandardScaler
 import librosa
 import soundfile as sf
 from tqdm import tqdm
+import logging
 
 data_dir = '../dataset'
 preprocessed_data_dir = os.path.join(data_dir, 'preprocessed_audio')
 
 if not os.path.exists(preprocessed_data_dir):
     os.makedirs(preprocessed_data_dir)
+
+# Configure logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Load the CSV file containing the annotations
 annotations = pd.read_csv(f'{data_dir}/development_scene_annotations.csv')
@@ -103,7 +107,19 @@ def first_pass(annotations):
 # Determine the maximum length after augmentation
 lengths, sample_rate = first_pass(annotations)
 max_length = int(np.percentile(lengths, 95))
-print(f"Max length determined statistically: {max_length}")
+logging.info(f"Max length determined statistically: {max_length}")
+
+# Calculate number of augmentations
+sample_audio = np.zeros(100)  # Dummy audio segment for augmentation count
+M = len(augment_audio(sample_audio, sample_rate))
+
+# Count the number of original segments
+N = len(annotations)
+
+# Calculate total number of segments
+T = 2 * N * M
+
+logging.info(f"Total number of segments: {T}")
 
 
 # Second pass to preprocess and pad/crop audio segments
@@ -113,10 +129,12 @@ def second_pass(annotations, max_length, sample_rate, max_execution_time=None):
     ica = FastICA(n_components=1, whiten='unit-variance')
     file_counter = 0
 
-    with tqdm(total=len(annotations) * 8, desc="Preprocessing") as pbar:
+    logging.info("Starting preprocessing...")
+
+    with tqdm(total=N * M, desc="Processing annotated segments") as pbar1:
         for index, row in annotations.iterrows():
             if max_execution_time and (time.time() - start_time) > max_execution_time:
-                print("Max execution time reached. Stopping preprocessing.")
+                logging.info("Max execution time reached. Stopping preprocessing.")
                 break
 
             file_name = f"{data_dir}/scenes/wav/{row['filename']}.wav"
@@ -139,7 +157,7 @@ def second_pass(annotations, max_length, sample_rate, max_execution_time=None):
 
             for segment in augmented_segments:
                 if max_execution_time and (time.time() - start_time) > max_execution_time:
-                    print("Max execution time reached. Stopping preprocessing.")
+                    logging.info("Max execution time reached. Stopping preprocessing.")
                     break
 
                 # Scale and apply ICA
@@ -159,12 +177,12 @@ def second_pass(annotations, max_length, sample_rate, max_execution_time=None):
                 segment_filename = os.path.join(preprocessed_data_dir, f'segment_{file_counter}_{row["command"]}.wav')
                 sf.write(segment_filename, segment_ica, sample_rate)
 
-                pbar.update(1)
+                pbar1.update(1)
 
-        # Add segments for background noise/unrecognized commands
+    with tqdm(total=N * M, desc="Processing unrecognized segments") as pbar2:
         for index, row in annotations.iterrows():
             if max_execution_time and (time.time() - start_time) > max_execution_time:
-                print("Max execution time reached. Stopping preprocessing.")
+                logging.info("Max execution time reached. Stopping preprocessing.")
                 break
 
             file_name = f"{data_dir}/scenes/wav/{row['filename']}.wav"
@@ -177,7 +195,7 @@ def second_pass(annotations, max_length, sample_rate, max_execution_time=None):
             for _ in range(file_counter // len(np.unique([label for label in annotations['command']] + [
                 unrecognized_command_label]))):  # Ensure a balanced dataset
                 if max_execution_time and (time.time() - start_time) > max_execution_time:
-                    print("Max execution time reached. Stopping preprocessing.")
+                    logging.info("Max execution time reached. Stopping preprocessing.")
                     break
 
                 segment_start_time = np.random.uniform(0, total_duration - segment_duration)
@@ -195,7 +213,7 @@ def second_pass(annotations, max_length, sample_rate, max_execution_time=None):
 
                 for segment in augmented_segments:
                     if max_execution_time and (time.time() - start_time) > max_execution_time:
-                        print("Max execution time reached. Stopping preprocessing.")
+                        logging.info("Max execution time reached. Stopping preprocessing.")
                         break
 
                     # Scale and apply ICA
@@ -212,13 +230,13 @@ def second_pass(annotations, max_length, sample_rate, max_execution_time=None):
 
                     # Save the processed segment as a WAV file with label encoded in the filename
                     file_counter += 1
-                    segment_filename = os.path.join(preprocessed_data_dir,
-                                                    f'segment_{file_counter}_{unrecognized_command_label}.wav')
+                    segment_filename = os.path.join(preprocessed_data_dir, f'segment_{file_counter}_{unrecognized_command_label}.wav')
                     sf.write(segment_filename, segment_ica, sample_rate)
 
-                    pbar.update(1)
-
+                    pbar2.update(1)
 
 # Load and preprocess the audio data with padding/cropping
-max_execution_time = 600  # Set maximum execution time in seconds (e.g., 1 hour)
+max_execution_time = 3600  # Set maximum execution time in seconds (e.g., 10 minutes)
 second_pass(annotations, max_length, sample_rate, max_execution_time)
+
+logging.info("Preprocessing completed.")
