@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from tensorflow.keras.models import Sequential, load_model
 from tensorflow.keras.layers import Conv1D, MaxPooling1D, Dropout, Flatten, Dense, Input
 from tensorflow.keras.utils import to_categorical
+from tensorflow.keras.callbacks import EarlyStopping
 import soundfile as sf
 import glob
 from tqdm import tqdm
@@ -116,9 +117,13 @@ model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accur
 # Print the model summary
 model.summary()
 
-# Train the model
+# Define early stopping callback
+early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+
+# Train the model with early stopping
 logging.info("Starting training...")
-history = model.fit(X_train, y_train, epochs=20, batch_size=32, validation_data=(X_val, y_val))
+history = model.fit(X_train, y_train, epochs=50, batch_size=32, validation_data=(X_val, y_val),
+                    callbacks=[early_stopping])
 
 # Evaluate the model
 y_pred = model.predict(X_val)
