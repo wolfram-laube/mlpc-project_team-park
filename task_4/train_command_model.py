@@ -23,6 +23,9 @@ model_save_path = f'{data_dir}/command_model.h5'
 # Load the CSV file containing the annotations
 annotations = pd.read_csv(f'{data_dir}/development_scene_annotations.csv')
 
+# Add a new category for background noise/unrecognized commands
+unrecognized_command_label = 'unrecognized_command'
+
 
 # Function to check and handle NaNs and Infs
 def check_and_handle_nans_infs(array):
@@ -100,17 +103,17 @@ def first_pass(annotations):
         for segment in augmented_segments:
             all_lengths.append(len(segment))
 
-    return all_lengths
+    return all_lengths, sample_rate
 
 
 # Determine the maximum length after augmentation
-lengths = first_pass(annotations)
+lengths, sample_rate = first_pass(annotations)
 max_length = int(np.percentile(lengths, 95))
 print(f"Max length determined statistically: {max_length}")
 
 
 # Second pass to preprocess and pad/crop audio segments
-def second_pass(annotations, max_length):
+def second_pass(annotations, max_length, sample_rate):
     scaler = StandardScaler()
     ica = FastICA(n_components=1, whiten='unit-variance')
     audio_data = []
@@ -151,11 +154,50 @@ def second_pass(annotations, max_length):
             audio_data.append(segment_ica)
             labels.append(row['command'])
 
+    # Add segments for background noise/unrecognized commands
+    for index, row in annotations.iterrows():
+        file_name = f"{data_dir}/scenes/wav/{row['filename']}.wav"
+        audio, sample_rate = librosa.load(file_name, sr=None)
+
+        # Randomly select segments from the audio that do not overlap with commands
+        total_duration = librosa.get_duration(y=audio, sr=sample_rate)
+        segment_duration = max_length / sample_rate
+
+        for _ in range(len(labels) // len(np.unique(labels))):  # Ensure a balanced dataset
+            start_time = np.random.uniform(0, total_duration - segment_duration)
+            start_sample = int(start_time * sample_rate)
+            end_sample = start_sample + max_length
+
+            if end_sample > len(audio):
+                continue
+
+            audio_segment = audio[start_sample:end_sample]
+
+            # Normalize and augment the audio segment
+            audio_segment = librosa.util.normalize(audio_segment)
+            augmented_segments = augment_audio(audio_segment, sample_rate)
+
+            for segment in augmented_segments:
+                # Scale and apply ICA
+                segment_scaled = scaler.fit_transform(segment.reshape(-1, 1)).flatten()
+                segment_scaled = check_and_handle_nans_infs(segment_scaled)
+                segment_ica = ica.fit_transform(segment_scaled.reshape(-1, 1)).flatten()
+                segment_ica = check_and_handle_nans_infs(segment_ica)
+
+                # Pad/crop to max_length
+                if len(segment_ica) > max_length:
+                    segment_ica = segment_ica[:max_length]
+                else:
+                    segment_ica = np.pad(segment_ica, (0, max_length - len(segment_ica)), 'constant')
+
+                audio_data.append(segment_ica)
+                labels.append(unrecognized_command_label)
+
     return np.array(audio_data), labels
 
 
 # Load and preprocess the audio data with padding/cropping
-X, y = second_pass(annotations, max_length)
+X, y = second_pass(annotations, max_length, sample_rate)
 
 # Reshape the ICA output for Conv1D
 X_ica_reshaped = X.reshape(X.shape[0], X.shape[1], 1)
@@ -202,8 +244,9 @@ def create_model(input_shape, num_classes):
     ])
     return model
 
+    # Create the model
 
-# Create the model
+
 model = create_model((X_train.shape[1], 1), num_classes)
 
 # Compile the model
@@ -265,6 +308,6 @@ if current_val_accuracy > previous_val_accuracy:
     model.save(model_save_path)
 else:
     print("Previous model outperforms the current model. Keeping the previous model.")
-##############################################
+    ##############################################
 stop = time.time()
 print(f'Finished in {stop - start} secs')

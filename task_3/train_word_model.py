@@ -127,9 +127,8 @@ test_loss_v2, test_accuracy_v2 = model_v2.evaluate(X_test_cnn, y_test_cnn)
 print(f'Modified 1D CNN Test Accuracy: {test_accuracy_v2}')
 print(f'Modified 1D CNN Test Loss: {test_loss_v2}')
 
-# Save the model
+# Save the model if performing better
 model_save_path = f'{data_dir}/word_model.h5'
-model_v2.save(model_save_path)
 
 # Evaluate the model
 y_pred = model_v2.predict(X_val_cnn)
