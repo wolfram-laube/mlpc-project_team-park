@@ -24,14 +24,12 @@ annotations = pd.read_csv(f'{data_dir}/development_scene_annotations.csv')
 # Add a new category for background noise/unrecognized commands
 unrecognized_command_label = 'unrecognized_command'
 
-
 # Function to check and handle NaNs and Infs
 def check_and_handle_nans_infs(array):
     if np.isnan(array).any() or np.isinf(array).any():
         array = np.nan_to_num(array)
         array[np.isinf(array)] = 0
     return array
-
 
 # Function to augment audio data
 def augment_audio(audio, sample_rate):
@@ -74,7 +72,6 @@ def augment_audio(audio, sample_rate):
 
     return augmented_audio
 
-
 # First pass to determine max_length after augmentation
 def first_pass(annotations):
     all_lengths = []
@@ -103,7 +100,6 @@ def first_pass(annotations):
 
     return all_lengths, sample_rate
 
-
 # Determine the maximum length after augmentation
 lengths, sample_rate = first_pass(annotations)
 max_length = int(np.percentile(lengths, 95))
@@ -120,7 +116,6 @@ N = len(annotations)
 T = 2 * N * M
 
 logging.info(f"Total number of segments: {T}")
-
 
 # Second pass to preprocess and pad/crop audio segments
 def second_pass(annotations, max_length, sample_rate, max_execution_time=None):
@@ -236,7 +231,7 @@ def second_pass(annotations, max_length, sample_rate, max_execution_time=None):
                     pbar2.update(1)
 
 # Load and preprocess the audio data with padding/cropping
-max_execution_time = 120  # Set maximum execution time in seconds (e.g., 10 minutes)
+max_execution_time = 240  # Set maximum execution time in seconds (e.g., 2 minutes)
 second_pass(annotations, max_length, sample_rate, max_execution_time)
 
 logging.info("Preprocessing completed.")

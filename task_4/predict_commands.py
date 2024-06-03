@@ -1,6 +1,7 @@
 import os
 import random
 import numpy as np
+import pandas as pd
 import librosa
 import json
 import csv
@@ -12,9 +13,9 @@ from sklearn.decomposition import FastICA
 # Configuration
 data_dir = '../dataset'
 wav_dir = os.path.join(data_dir, 'scenes/wav')
+annotations_file = os.path.join(data_dir, 'development_scene_annotations.csv')
 model_save_path = os.path.join(data_dir, 'command_model.h5')
 label_metadata_path = os.path.join(data_dir, 'command_class_names.json')
-num_files_to_process = 5  # Number of files to process
 output_csv = 'my_predictions.csv'
 window_size = 1.5  # Window size in seconds
 stride = 0.2  # Stride in seconds
@@ -76,8 +77,8 @@ def process_audio_stream(audio, sample_rate, model, input_length, window_size=1.
         predicted_command = command_class_names[predicted_command_idx]  # Map index to class name
         confidence = command_prediction[0][predicted_command_idx]
 
-        # If the predicted command is not 'unrecognized_command' and confidence is above the threshold, store the detection
-        if predicted_command != 'unrecognized_command' and confidence >= threshold:
+        # If the predicted command is not 'command' and confidence is above the threshold, store the detection
+        if predicted_command != 'command' and confidence >= threshold:
             timestamp = current_position / sample_rate
             command_detections.append((timestamp, predicted_command))
 
@@ -85,20 +86,18 @@ def process_audio_stream(audio, sample_rate, model, input_length, window_size=1.
 
     return command_detections
 
-# Get a list of all WAV files in the directory that contain "speech_false" in the filename
-wav_files = [f for f in os.listdir(wav_dir) if f.endswith('.wav') and "speech_false" in f]
+# Load the annotations file
+annotations = pd.read_csv(annotations_file)
 
-# Randomly select a subset of files to process
-selected_files = random.sample(wav_files, min(num_files_to_process, len(wav_files)))
-
-# Process each selected file and write predictions to CSV
+# Process each file in the annotations and write predictions to CSV
 with open(output_csv, 'w', newline='') as csvfile:
     fieldnames = ['filename', 'command', 'timestamp']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
 
-    for wav_file in tqdm(selected_files, desc="Processing files"):
-        file_path = os.path.join(wav_dir, wav_file)
+    for _, row in tqdm(annotations.iterrows(), desc="Processing files", total=annotations.shape[0]):
+        wav_file = row['filename']
+        file_path = os.path.join(wav_dir, f"{wav_file}.wav")
         audio, sample_rate = librosa.load(file_path, sr=None)
 
         # Get the expected input length for the model
