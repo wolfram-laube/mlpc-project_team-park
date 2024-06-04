@@ -1,18 +1,25 @@
 import numpy as np
 import librosa
-import json
 from keras.models import load_model
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import FastICA
+import json
+import os
 
+# Configuration
 data_dir = '../dataset'
+model_save_path = os.path.join(data_dir, 'command_model.h5')
+label_metadata_path = os.path.join(data_dir, 'command_class_names.json')
+window_size = 1.5  # Window size in seconds
+stride = 0.2  # Stride in seconds
+confidence_threshold = 0.8  # Confidence threshold for predictions
 
 # Load the model
-command_model = load_model(f'{data_dir}/command_model.h5')
+model = load_model(model_save_path)
 
 # Load the class names
-with open(f'{data_dir}/command_class_names.json', 'r') as f:
+with open(label_metadata_path, 'r') as f:
     command_class_names = json.load(f)
-
-print(f'Command Class Names: {command_class_names}')
 
 
 # Function to pad or trim audio segments to a fixed length
@@ -25,55 +32,57 @@ def pad_or_trim(segment, target_length):
         return segment
 
 
-# Function to process audio stream with sliding window
-def process_audio_stream(audio, sample_rate, command_model, input_length, command_class_names, window_size=1.0,
-                         stride=0.5, framework='keras'):
-    window_samples = int(window_size * sample_rate)
-    stride_samples = int(stride * sample_rate)
-    current_position = 0
-    command_detections = []
+# Function to normalize and apply ICA
+def preprocess_segment(segment):
+    scaler = StandardScaler()
+    ica = FastICA(n_components=1, whiten='unit-variance')
 
-    while current_position + window_samples <= len(audio):
-        segment = audio[current_position:current_position + window_samples]
+    segment_scaled = scaler.fit_transform(segment.reshape(-1, 1)).flatten()
+    segment_scaled = np.nan_to_num(segment_scaled)
+    segment_scaled[np.isinf(segment_scaled)] = 0
 
-        # Pad or trim the segment to the required input length for the command model
-        segment_padded = pad_or_trim(segment, input_length)
+    segment_ica = ica.fit_transform(segment_scaled.reshape(-1, 1)).flatten()
+    segment_ica = np.nan_to_num(segment_ica)
+    segment_ica[np.isinf(segment_ica)] = 0
 
-        # Ensure correct input shape for the command model
-        segment_input = segment_padded.reshape(1, -1, 1)
-
-        if framework == 'keras':
-            # Command classification with Keras
-            command_prediction = command_model.predict(segment_input)
-        elif framework == 'pytorch':
-            # Command classification with PyTorch
-            segment_tensor = torch.tensor(segment_input, dtype=torch.float32)
-            command_prediction = command_model(segment_tensor).detach().numpy()
-
-        predicted_command_idx = np.argmax(command_prediction)
-        predicted_command = command_class_names[predicted_command_idx]  # Map index to class name
-        print(f'Predicted command: {predicted_command}')
-
-        # Store the command and its timestamp if it is a recognized command
-        if predicted_command != 'unrecognized_command':  # Replace with your actual command class / negative detection
-            timestamp = current_position / sample_rate
-            command_detections.append((timestamp, predicted_command))
-
-        current_position += stride_samples
-
-    return command_detections
+    return segment_ica
 
 
-# Load the WAV file
-wav_file = f'{data_dir}/scenes/wav/2023_speech_true_Licht_an.wav'
-audio, sample_rate = librosa.load(wav_file, sr=None)
+# Function to detect command pairs
+def detect_command_pairs(audio_path, model, sr=16000, window_size=1.5, step_size=0.2):
+    y, _ = librosa.load(audio_path, sr=sr)
+    window_samples = int(window_size * sr)
+    step_samples = int(step_size * sr)
 
-# Determine the input length expected by the command model
-input_length = command_model.input_shape[1]  # Exclude batch dimension
+    windows = librosa.util.frame(y, frame_length=window_samples, hop_length=step_samples)
+    windows = windows.T.reshape((windows.shape[1], windows.shape[0], 1))
 
-# Process the audio stream
-detections = process_audio_stream(audio, sample_rate, command_model, input_length, command_class_names)
+    predictions = model.predict(windows)
 
-# Output results
-for detection in detections:
-    print(f"Detected command '{detection[1]}' at {detection[0]:.2f} seconds")
+    command_segments = []
+    command_predictions = []
+
+    for i, window in enumerate(windows):
+        segment = y[i * step_samples:i * step_samples + window_samples]
+        segment = preprocess_segment(segment)
+        segment = pad_or_trim(segment, model.input_shape[1])
+
+        prediction = model.predict(segment.reshape(1, -1, 1))
+        predicted_command_idx = np.argmax(prediction)
+        predicted_command = command_class_names[predicted_command_idx]
+        confidence = prediction[0][predicted_command_idx]
+
+        if confidence >= confidence_threshold:
+            command_segments.append(segment)
+            command_predictions.append((predicted_command, confidence))
+
+    return command_segments, command_predictions
+
+
+# Example usage
+audio_path = os.path.join(data_dir, 'scenes/wav/2023_speech_true_Licht_an.wav')
+command_segments, command_predictions = detect_command_pairs(audio_path, model)
+
+# Print the recognized commands
+for command, confidence in command_predictions:
+    print(f"Command: {command}, Confidence: {confidence}")

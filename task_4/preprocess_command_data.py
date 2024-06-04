@@ -231,7 +231,7 @@ def second_pass(annotations, max_length, sample_rate, max_execution_time=None):
                     pbar2.update(1)
 
 # Load and preprocess the audio data with padding/cropping
-max_execution_time = 240  # Set maximum execution time in seconds (e.g., 2 minutes)
+max_execution_time = 260  # Set maximum execution time in seconds (e.g., 2 minutes)
 second_pass(annotations, max_length, sample_rate, max_execution_time)
 
 logging.info("Preprocessing completed.")
