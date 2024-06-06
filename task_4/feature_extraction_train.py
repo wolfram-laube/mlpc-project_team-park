@@ -4,7 +4,7 @@ import numpy as np
 import tensorflow as tf
 from tensorflow.keras import layers, models, regularizers
 from tensorflow.keras.utils import to_categorical
-from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
+from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 from tqdm import tqdm
 import logging
 import matplotlib.pyplot as plt
@@ -138,9 +138,10 @@ command_model = build_gru_attention_model(input_shape, num_classes)
 logging.info('Training command recognition model...')
 early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 model_checkpoint = ModelCheckpoint(model_save_path, save_best_only=True, monitor='val_loss')
+reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, min_lr=0.00001)
 
 history = command_model.fit(combined_features, combined_labels, epochs=100, batch_size=48, validation_split=0.2,
-                            callbacks=[early_stopping, model_checkpoint], class_weight=class_weights)
+                            callbacks=[early_stopping, model_checkpoint, reduce_lr], class_weight=class_weights)
 logging.info('Command recognition model trained.')
 
 # Plot training & validation accuracy values
