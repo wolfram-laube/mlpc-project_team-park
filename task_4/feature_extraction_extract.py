@@ -1,137 +1,197 @@
 import os
 import numpy as np
 import librosa
+import logging
 import pandas as pd
 from tqdm import tqdm
 
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 data_dir = '../dataset'
-annotations_file = f'{data_dir}/development_scene_annotations.csv'
-annotations = pd.read_csv(annotations_file)
+audio_dir = f'{data_dir}/scenes/wav'
 output_dir = f'{data_dir}/scenes/extracted_features'
+meta_dir = f'{data_dir}/meta'
+annotations_file = f'{data_dir}/development_scene_annotations.csv'
 
-if not os.path.exists(output_dir):
-    os.makedirs(output_dir)
+os.makedirs(output_dir, exist_ok=True)
+os.makedirs(meta_dir, exist_ok=True)
 
+# Load annotations
+logging.info('Loading annotations...')
+annotations = pd.read_csv(annotations_file)
+logging.info('Annotations loaded.')
 
-# Define the feature extraction function
+# Function to extract features
 def extract_features(y, sr):
     features = []
     feature_names = []
 
-    # Spectral features
-    spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr).flatten()
-    spectral_bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr).flatten()
-    spectral_contrast = librosa.feature.spectral_contrast(y=y, sr=sr)
-    spectral_flatness = librosa.feature.spectral_flatness(y=y).flatten()
-    spectral_rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr).flatten()
-
-    # Add spectral features
-    features.append(spectral_centroid)
-    feature_names.append('centroid_0')
-    features.append(spectral_bandwidth)
-    feature_names.append('bandwidth_0')
-    for i, contrast in enumerate(spectral_contrast):
-        features.append(contrast)
-        feature_names.append(f'contrast_{i}')
-    features.append(spectral_flatness)
-    feature_names.append('flatness_0')
-    features.append(spectral_rolloff)
-    feature_names.append('rolloff_0')
-
-    # Chroma features
-    chroma_stft = librosa.feature.chroma_stft(y=y, sr=sr).flatten()
-    chroma_cqt = librosa.feature.chroma_cqt(y=y, sr=sr).flatten()
-    chroma_cens = librosa.feature.chroma_cens(y=y, sr=sr).flatten()
-
-    # Add chroma features
-    features.append(chroma_stft)
-    feature_names.append('chroma_stft_0')
-    features.append(chroma_cqt)
-    feature_names.append('chroma_cqt_0')
-    features.append(chroma_cens)
-    feature_names.append('chroma_cens_0')
-
     # Mel-spectrogram
-    mel_spec = librosa.feature.melspectrogram(y=y, sr=sr).flatten()
-    features.append(mel_spec)
-    feature_names.append('melspect_0')
+    mel_spec = librosa.feature.melspectrogram(y=y, sr=sr, n_mels=64)
+    for i in range(mel_spec.shape[0]):
+        features.append(mel_spec[i])
+        feature_names.append(f'melspect_{i}')
 
     # MFCC
-    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=40).flatten()
-    for i in range(40):
+    mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=32)
+    for i in range(mfcc.shape[0]):
         features.append(mfcc[i])
         feature_names.append(f'mfcc_{i}')
 
-    # RMS energy
-    rms = librosa.feature.rms(y=y).flatten()
-    features.append(rms)
-    feature_names.append('rms_0')
+    # Delta MFCC
+    mfcc_delta = librosa.feature.delta(mfcc)
+    for i in range(mfcc_delta.shape[0]):
+        features.append(mfcc_delta[i])
+        feature_names.append(f'mfcc_d_{i}')
 
-    # Zero-crossing rate
-    zcr = librosa.feature.zero_crossing_rate(y).flatten()
-    features.append(zcr)
-    feature_names.append('zcr_0')
+    # Delta-Delta MFCC
+    mfcc_delta2 = librosa.feature.delta(mfcc, order=2)
+    for i in range(mfcc_delta2.shape[0]):
+        features.append(mfcc_delta2[i])
+        feature_names.append(f'mfcc_d2_{i}')
 
-    # Harmonics and Perceived Pitch
-    harmony = librosa.effects.harmonic(y).flatten()
-    features.append(harmony)
+    # Spectral bandwidth
+    bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr)
+    for i in range(bandwidth.shape[0]):
+        features.append(bandwidth[i])
+        feature_names.append(f'bandwidth_{i}')
+
+    # Spectral centroid
+    centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
+    for i in range(centroid.shape[0]):
+        features.append(centroid[i])
+        feature_names.append(f'centroid_{i}')
+
+    # Spectral contrast
+    contrast = librosa.feature.spectral_contrast(y=y, sr=sr)
+    for i in range(contrast.shape[0]):
+        features.append(contrast[i])
+        feature_names.append(f'contrast_{i}')
+
+    # Spectral flatness
+    flatness = librosa.feature.spectral_flatness(y=y)
+    for i in range(flatness.shape[0]):
+        features.append(flatness[i])
+        feature_names.append(f'flatness_{i}')
+
+    # Spectral flux
+    flux = librosa.onset.onset_strength(y=y, sr=sr)
+    features.append(flux)
+    feature_names.append('flux_0')
+
+    # Root mean square energy
+    rms = librosa.feature.rms(y=y)
+    for i in range(rms.shape[0]):
+        features.append(rms[i])
+        feature_names.append(f'energy_{i}')
+
+    # Zero crossing rate
+    zcr = librosa.feature.zero_crossing_rate(y)
+    for i in range(zcr.shape[0]):
+        features.append(zcr[i])
+        feature_names.append(f'zcr_{i}')
+
+    # Power
+    power = librosa.feature.rms(y=y)
+    for i in range(power.shape[0]):
+        features.append(power[i])
+        feature_names.append(f'power_{i}')
+
+    # Yin (pitch detection)
+    yin = librosa.yin(y, fmin=librosa.note_to_hz('C2'), fmax=librosa.note_to_hz('C7'))
+    features.append(yin)
+    feature_names.append('yin_0')
+
+    # Chroma features
+    chroma_stft = librosa.feature.chroma_stft(y=y, sr=sr)
+    for i in range(chroma_stft.shape[0]):
+        features.append(chroma_stft[i])
+        feature_names.append(f'chroma_stft_{i}')
+
+    chroma_cqt = librosa.feature.chroma_cqt(y=y, sr=sr)
+    for i in range(chroma_cqt.shape[0]):
+        features.append(chroma_cqt[i])
+        feature_names.append(f'chroma_cqt_{i}')
+
+    chroma_cens = librosa.feature.chroma_cens(y=y, sr=sr)
+    for i in range(chroma_cens.shape[0]):
+        features.append(chroma_cens[i])
+        feature_names.append(f'chroma_cens_{i}')
+
+    # Harmonic
+    harmonic = librosa.effects.harmonic(y)
+    features.append(harmonic)
     feature_names.append('harmonic_0')
 
-    # Stack all features into a single array
-    features = np.hstack(features)
+    # Rolloff
+    rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)
+    for i in range(rolloff.shape[0]):
+        features.append(rolloff[i])
+        feature_names.append(f'rolloff_{i}')
 
-    return features, feature_names
+    return np.array(features), feature_names
 
+# Extract and save features
+def process_and_save_features(annotations, audio_dir, output_dir):
+    feature_names = []
+    max_feature_len = 0
 
-# Function to save features and feature names
-def save_features(annotations, output_dir):
-    feature_names_set = None
-    max_len = 0
-
+    # First pass to find the maximum length of features
     for index, row in tqdm(annotations.iterrows(), total=annotations.shape[0]):
-        audio_file = os.path.join(f'{data_dir}/scenes/wav', row['filename'] + '.wav')
-        y, sr = librosa.load(audio_file, sr=None)
+        file_path = os.path.join(audio_dir, f"{row['filename']}.wav")
+        y, sr = librosa.load(file_path, sr=None)
+        features, _ = extract_features(y, sr)
+        for feature in features:
+            if isinstance(feature, np.ndarray):
+                max_feature_len = max(max_feature_len, len(feature))
+
+    # Second pass to extract features and pad them
+    for index, row in tqdm(annotations.iterrows(), total=annotations.shape[0]):
+        file_path = os.path.join(audio_dir, f"{row['filename']}.wav")
+        y, sr = librosa.load(file_path, sr=None)
         features, feature_names = extract_features(y, sr)
 
-        if feature_names_set is None:
-            feature_names_set = feature_names
+        # Pad each feature to the maximum length
+        padded_features = []
+        for feature in features:
+            if isinstance(feature, np.ndarray):
+                if len(feature) < max_feature_len:
+                    feature = np.pad(feature, (0, max_feature_len - len(feature)), mode='constant')
+            else:
+                feature = np.array([feature] * max_feature_len)
+            padded_features.append(feature)
 
-        max_len = max(max_len, features.shape[0])
+        padded_features = np.array(padded_features)
+        logging.info(f'Extracted features for {row["filename"]}: shape {padded_features.shape}')
+        np.save(os.path.join(output_dir, row['filename']), padded_features)
 
-        feature_file = os.path.join(output_dir, row['filename'] + '.npy')
-        np.save(feature_file, features)
+    return feature_names
 
-    return feature_names_set, max_len
-
-
-print("Extracting features...")
-extracted_feature_names, max_len = save_features(annotations, output_dir)
-print("Feature extraction complete.")
+logging.info('Extracting features...')
+feature_names = process_and_save_features(annotations, audio_dir, output_dir)
 
 # Save the feature names
-feature_names_file = os.path.join(output_dir, 'idx_to_extracted_feature_names.csv')
-pd.DataFrame({'feature_name': extracted_feature_names}).to_csv(feature_names_file, index=False)
+feature_names_file = os.path.join(meta_dir, 'idx_to_extracted_feature_names.csv')
+pd.DataFrame({'index': range(len(feature_names)), 'feature_name': feature_names}).to_csv(feature_names_file, index=False)
 
+# Calculate mean and std
+logging.info('Calculating mean and std...')
+extracted_features = []
+for file in os.listdir(output_dir):
+    if file.endswith('.npy'):
+        features = np.load(os.path.join(output_dir, file))
+        extracted_features.append(features)
 
-# Pad features to the same length
-def pad_features(feature_files, max_len):
-    padded_features = []
-    for f in feature_files:
-        features = np.load(os.path.join(output_dir, f))
-        if features.shape[0] < max_len:
-            features = np.pad(features, (0, max_len - features.shape[0]), mode='constant')
-        padded_features.append(features)
-    return np.array(padded_features)
+extracted_features = np.concatenate(extracted_features, axis=0)
 
+mean = np.mean(extracted_features, axis=(0, 2), keepdims=True)
+std = np.std(extracted_features, axis=(0, 2), keepdims=True)
 
-# Load and pad extracted features
-extracted_files = [f for f in os.listdir(output_dir) if f.endswith('.npy')]
-extracted_features = pad_features(extracted_files, max_len)
+# Ensure no division by zero
+std[std == 0] = 1
 
-# Calculate mean and stddev for the extracted features
-extracted_mean = np.mean(extracted_features, axis=0)
-extracted_std = np.std(extracted_features, axis=0)
-
-# Save mean and stddev
-np.save(os.path.join(output_dir, 'mean.npy'), extracted_mean)
-np.save(os.path.join(output_dir, 'std.npy'), extracted_std)
+logging.info(f'Mean shape: {mean.shape}, Std shape: {std.shape}')
+np.save(os.path.join(meta_dir, 'mean.npy'), mean)
+np.save(os.path.join(meta_dir, 'std.npy'), std)
+logging.info('Feature extraction and normalization complete.')

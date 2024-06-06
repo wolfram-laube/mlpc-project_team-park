@@ -16,11 +16,17 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 data_dir = '../dataset'
 annotations_file = f'{data_dir}/development_scene_annotations.csv'
 model_save_path = 'best_command_model.keras'
+feature_dir = f'{data_dir}/scenes/extracted_features'
+meta_dir = f'{data_dir}/meta'
 
 # Load annotations
 logging.info('Loading annotations...')
 annotations = pd.read_csv(annotations_file)
 logging.info('Annotations loaded.')
+
+# Load mean and std
+mean = np.load(os.path.join(meta_dir, 'mean.npy'))
+std = np.load(os.path.join(meta_dir, 'std.npy'))
 
 # Check class distribution
 class_counts = annotations['command'].value_counts()
@@ -31,8 +37,7 @@ plt.xlabel('Commands')
 plt.ylabel('Count')
 plt.show()
 
-
-def prepare_feature_data(annotations, data_dir, feature_dir):
+def prepare_feature_data(annotations, feature_dir):
     command_features = []
     command_labels = []
     command_mapping = {}  # Mapping of command texts to numerical labels
@@ -43,6 +48,11 @@ def prepare_feature_data(annotations, data_dir, feature_dir):
     for index, row in tqdm(annotations.iterrows(), total=annotations.shape[0]):
         feature_path = os.path.join(feature_dir, row['filename'] + '.npy')
         features = np.load(feature_path)
+
+        if features.ndim == 1:  # Handling case where features are not properly loaded
+            logging.warning(f"Feature file {row['filename']} has unexpected shape {features.shape} and will be skipped.")
+            continue
+
         max_len = max(max_len, features.shape[1])  # Update max_len
 
         command_text = row['command']
@@ -66,15 +76,11 @@ def prepare_feature_data(annotations, data_dir, feature_dir):
     logging.info('Command data prepared.')
     return np.array(padded_features), np.array(command_labels), command_mapping, max_len
 
-
 # Prepare feature-based command data
-feature_dir = f'{data_dir}/scenes/npy'
-command_features, command_labels, command_mapping, max_len = prepare_feature_data(annotations, data_dir, feature_dir)
+command_features, command_labels, command_mapping, max_len = prepare_feature_data(annotations, feature_dir)
 
 # Normalize features across each feature dimension
-command_features = (command_features - np.mean(command_features, axis=(0, 2), keepdims=True)) / np.std(command_features,
-                                                                                                       axis=(0, 2),
-                                                                                                       keepdims=True)
+command_features = (command_features - mean) / std
 
 # One-hot encode labels
 num_classes = len(command_mapping)
@@ -82,14 +88,12 @@ command_labels = to_categorical(command_labels, num_classes=num_classes)
 
 logging.info(f'Command mapping: {command_mapping}')
 
-
 # Data Augmentation Function
 def augment_data(features, noise_factor=0.005):
     noise = np.random.randn(*features.shape) * noise_factor
     augmented_features = features + noise
     augmented_features = np.clip(augmented_features, -1.0, 1.0)
     return augmented_features
-
 
 # Augment the training data
 augmented_features = augment_data(command_features)
@@ -102,7 +106,6 @@ class_weights = class_weight.compute_class_weight(class_weight='balanced',
                                                   y=np.argmax(command_labels, axis=1))
 class_weights = dict(enumerate(class_weights))
 
-
 # GRU with Attention Model
 def attention_block(inputs):
     attention = layers.Dense(1, activation='tanh')(inputs)
@@ -112,7 +115,6 @@ def attention_block(inputs):
     attention = layers.Permute([2, 1])(attention)
     output_attention = layers.Multiply()([inputs, attention])
     return output_attention
-
 
 def build_gru_attention_model(input_shape, num_classes):
     inputs = layers.Input(shape=input_shape)
@@ -129,7 +131,6 @@ def build_gru_attention_model(input_shape, num_classes):
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='categorical_crossentropy',
                   metrics=['accuracy'])
     return model
-
 
 input_shape = (command_features.shape[1], command_features.shape[2])
 command_model = build_gru_attention_model(input_shape, num_classes)
