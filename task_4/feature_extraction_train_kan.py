@@ -1,17 +1,14 @@
-# training_script.py
 import os
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras import layers, models, regularizers
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from sklearn.utils import class_weight
 from tqdm import tqdm
 import logging
 import matplotlib.pyplot as plt
-import json
-from utils import extract_features, pad_features
-from models import KolmogorovArnoldNetwork
+from sklearn.utils import class_weight
 
 # Setup logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -21,7 +18,6 @@ annotations_file = f'{data_dir}/development_scene_annotations.csv'
 kan_model_save_path = 'best_command_kan_model.keras'
 feature_dir = f'{data_dir}/scenes/extracted_features'
 meta_dir = f'{data_dir}/meta'
-command_mapping_path = os.path.join(meta_dir, 'command_mapping.json')
 
 # Load annotations
 logging.info('Loading annotations...')
@@ -83,10 +79,6 @@ def prepare_feature_data(annotations, feature_dir):
 # Prepare feature-based command data
 command_features, command_labels, command_mapping, max_len = prepare_feature_data(annotations, feature_dir)
 
-# Save command mapping
-with open(command_mapping_path, 'w') as f:
-    json.dump(command_mapping, f)
-
 # Normalize features across each feature dimension
 command_features = (command_features - mean) / std
 
@@ -115,62 +107,50 @@ class_weights = class_weight.compute_class_weight(class_weight='balanced',
 class_weights = dict(enumerate(class_weights))
 
 # Kolmogorov-Arnold Network (KAN) Model
-class KolmogorovArnoldNetwork(tf.keras.Model):
-    def __init__(self, input_shape, num_univariate_functions, hidden_units, num_classes, **kwargs):
-        super(KolmogorovArnoldNetwork, self).__init__(**kwargs)
-        self.input_shape = input_shape
-        self.num_univariate_functions = num_univariate_functions
-        self.hidden_units = hidden_units
-        self.num_classes = num_classes
+from tensorflow.keras.layers import Layer
+from tensorflow.keras.saving import register_keras_serializable
 
-        # Univariate functions layers
-        self.univariate_layers = [layers.Dense(hidden_units, activation='tanh') for _ in range(num_univariate_functions)]
+@register_keras_serializable()
+class KolmogorovArnoldNetwork(Layer):
+    def __init__(self, **kwargs):
+        super(KolmogorovArnoldNetwork, self).__init__()
 
-        # Combination layer
-        self.combination_layer = layers.Dense(hidden_units, activation='relu')
-
-        # Output layer
-        self.output_layer = layers.Dense(num_classes, activation='softmax')
+    def build(self, input_shape):
+        # Build the layers and parameters
+        super(KolmogorovArnoldNetwork, self).build(input_shape)
 
     def call(self, inputs):
-        # Apply univariate functions
-        univariate_outputs = [layer(inputs) for layer in self.univariate_layers]
-
-        # Combine outputs
-        combined_output = tf.concat(univariate_outputs, axis=-1)
-        combined_output = self.combination_layer(combined_output)
-
-        # Flatten and apply final output layer
-        combined_output = tf.reduce_mean(combined_output, axis=2)  # Average over feature dimension
-        return self.output_layer(combined_output)
+        # Define the forward pass
+        return inputs
 
     def get_config(self):
         config = super(KolmogorovArnoldNetwork, self).get_config()
-        config.update({
-            'input_shape': self.input_shape,
-            'num_univariate_functions': self.num_univariate_functions,
-            'hidden_units': self.hidden_units,
-            'num_classes': self.num_classes,
-        })
         return config
 
     @classmethod
     def from_config(cls, config):
         return cls(**config)
 
+def build_kan_model(input_shape, num_classes):
+    inputs = layers.Input(shape=input_shape)
+    x = KolmogorovArnoldNetwork()(inputs)
+    x = layers.Flatten()(x)
+    x = layers.Dense(256, activation='relu', kernel_regularizer=regularizers.l2(0.01))(x)
+    x = layers.Dropout(0.5)(x)
+    outputs = layers.Dense(num_classes, activation='softmax')(x)
+    model = models.Model(inputs, outputs)
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='categorical_crossentropy',
+                  metrics=['accuracy'])
+    return model
+
 input_shape = (command_features.shape[1], command_features.shape[2])
-num_univariate_functions = 5
-hidden_units = 128
-
-kan_model = KolmogorovArnoldNetwork(input_shape, num_univariate_functions, hidden_units, num_classes)
-
-kan_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.001), loss='categorical_crossentropy', metrics=['accuracy'])
+kan_model = build_kan_model(input_shape, num_classes)
 
 logging.info('Training command recognition model...')
 early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 model_checkpoint = ModelCheckpoint(kan_model_save_path, save_best_only=True, monitor='val_loss')
 
-history = kan_model.fit(combined_features, combined_labels, epochs=200, batch_size=48, validation_split=0.2,
+history = kan_model.fit(combined_features, combined_labels, epochs=300, batch_size=48, validation_split=0.2,
                         callbacks=[early_stopping, model_checkpoint], class_weight=class_weights)
 logging.info('Command recognition model trained.')
 
