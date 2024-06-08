@@ -1,8 +1,9 @@
+# utils.py
 import numpy as np
 import librosa
 
-# Function to extract features
-def extract_features(y, sr):
+# Extract features function
+def extract_features(y, sr, max_len=None):
     features = []
     feature_names = []
 
@@ -98,23 +99,32 @@ def extract_features(y, sr):
         features.append(chroma_cens[i])
         feature_names.append(f'chroma_cens_{i}')
 
+    # Rolloff
+    rolloff = librosa.feature.spectral_rolloff(y=y, sr=sr)
+    for i in range(rolloff.shape[0]):
+        features.append(rolloff[i])
+        feature_names.append(f'rolloff_{i}')
+
     return np.array(features), feature_names
 
-# Function to pad features
+# Pad features function with cropping
 def pad_features(features, max_feature_lens):
     padded_features = []
     for i, feature in enumerate(features):
-        max_len = max_feature_lens[i]
-        if feature.ndim == 1:
-            feature = np.expand_dims(feature, axis=0)
-        if feature.shape[1] < max_len:
-            feature = np.pad(feature, ((0, 0), (0, max_len - feature.shape[1])), mode='constant')
+        if isinstance(feature, np.ndarray):
+            if feature.ndim == 1:
+                feature = np.expand_dims(feature, axis=0)
+            if feature.shape[1] < max_feature_lens[i]:
+                feature = np.pad(feature, ((0, 0), (0, max_feature_lens[i] - feature.shape[1])), mode='constant')
+            elif feature.shape[1] > max_feature_lens[i]:
+                feature = feature[:, :max_feature_lens[i]]  # Crop to max length
+        else:
+            feature = np.array([feature] * max_feature_lens[i])
         padded_features.append(feature)
     return np.array(padded_features)
 
-# Function to prepare a segment for prediction
-def prepare_segment(segment, sample_rate, mean, std):
-    features, _ = extract_features(segment, sample_rate)
+# Prepare segment function
+def prepare_segment(segment, sample_rate, mean, std, max_len=None):
+    features, _ = extract_features(segment, sample_rate, max_len=max_len)
     features = (features - mean) / std  # Normalize features
-    features = np.expand_dims(features, axis=0)  # Add batch dimension
-    return features
+    return np.expand_dims(features, axis=0)  # Add batch dimension
