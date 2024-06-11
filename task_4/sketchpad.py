@@ -1,119 +1,119 @@
-data_dir = '../dataset'
-
+import os
 import numpy as np
-import pandas as pd
-from sklearn.decomposition import FastICA
-from sklearn.preprocessing import LabelEncoder
-from sklearn.model_selection import train_test_split
-from tensorflow.keras.models import Sequential
-from tensorflow.keras.layers import Conv1D, MaxPooling1D, Dropout, Flatten, Dense, Input
-from tensorflow.keras.utils import to_categorical
 import librosa
+import logging
+import pandas as pd
+from tqdm import tqdm
+from utils import extract_features, pad_features
 
-# Load the CSV file containing the annotations
-annotations = pd.read_csv(f'{data_dir}/development_scene_annotations.csv')
+# Setup logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+data_dir = '../dataset'
+audio_dir = f'{data_dir}/scenes/preprocessed_segments'
+output_dir = f'{data_dir}/scenes/extracted_features'
+meta_dir = f'{data_dir}/meta'
+annotations_file = f'{data_dir}/development_scene_annotations.csv'
+non_command_dir = './unknown_commands'
 
-# Load and preprocess the audio data
-def load_and_preprocess_audio(annotations, max_length=22050):
-    audio_data = []
-    labels = []
-    for index, row in annotations.iterrows():
-        file_name = f"{data_dir}/scenes/wav/{row['filename']}.wav"
-        start_time = row['start']
-        end_time = row['end']
+os.makedirs(output_dir, exist_ok=True)
+os.makedirs(meta_dir, exist_ok=True)
 
-        # Load audio file
-        audio, sample_rate = librosa.load(file_name, sr=None)
+# Load annotations
+logging.info('Loading annotations...')
+annotations = pd.read_csv(annotations_file)
+logging.info('Annotations loaded.')
 
-        # Extract the relevant segment
-        start_sample = int(start_time * sample_rate)
-        end_sample = int(end_time * sample_rate)
-        audio_segment = audio[start_sample:end_sample]
+# Check if non_command_dir exists
+if not os.path.exists(non_command_dir):
+    logging.error(f'Non-command directory {non_command_dir} does not exist.')
+    raise FileNotFoundError(f'Non-command directory {non_command_dir} does not exist.')
 
-        # Normalize the audio segment
-        audio_segment = librosa.util.normalize(audio_segment)
+# Use full dataset or a balanced random sample for debugging
+debug_mode = True  # Set to False to use the full dataset
+if debug_mode:
+    known_sample_size = 5
+    unknown_sample_size = 5
 
-        # Reshape the segment to have a fixed length
-        if len(audio_segment) > max_length:
-            audio_segment = audio_segment[:max_length]
+    known_commands = annotations.sample(n=known_sample_size, random_state=42)
+    non_command_files = [f for f in os.listdir(non_command_dir) if f.endswith('.wav')]
+    unknown_commands = pd.DataFrame({
+        'filename': [f.replace('.wav', '') for f in
+                     np.random.choice(non_command_files, unknown_sample_size, replace=False)],
+        'command': ['unknown_command'] * unknown_sample_size
+    })
+    annotations = pd.concat([known_commands, unknown_commands], ignore_index=True)
+    logging.info(
+        f'Using a balanced random sample of {known_sample_size} known commands and {unknown_sample_size} unknown commands for debugging.')
+
+# Extract and save features
+def process_and_save_features(annotations, audio_dir, non_command_dir, output_dir, max_timeframes=None, ica_enabled=False):
+    feature_names = []
+    max_feature_lens = []
+
+    # First pass to find the maximum length of each feature type
+    for index, row in tqdm(annotations.iterrows(), total=annotations.shape[0]):
+        if row['command'] != 'unknown_command':
+            file_path = os.path.join(audio_dir, f"{row['filename']}_{row['command'].replace(' ', '_')}_{row['start']}_{row['end']}.wav")
         else:
-            audio_segment = np.pad(audio_segment, (0, max_length - len(audio_segment)), 'constant')
+            file_path = os.path.join(non_command_dir, f"{row['filename']}.wav")
 
-        audio_data.append(audio_segment)
-        labels.append(row['command'])
+        y, sr = librosa.load(file_path, sr=None)
+        features, _ = extract_features(y, sr, max_len=max_timeframes, ica_enabled=ica_enabled)
+        if not max_feature_lens:
+            max_feature_lens = [0] * len(features[0])
+        for i, feature in enumerate(features[0]):
+            max_feature_lens[i] = max(max_feature_lens[i], feature.shape[0])
 
-    return np.array(audio_data), labels
+    # If max_timeframes is provided, override the calculated lengths
+    if max_timeframes:
+        max_feature_lens = [max_timeframes] * len(max_feature_lens)
 
+    # Second pass to extract features and pad them
+    for index, row in tqdm(annotations.iterrows(), total=annotations.shape[0]):
+        if row['command'] != 'unknown_command':
+            file_path = os.path.join(audio_dir, f"{row['filename']}_{row['command'].replace(' ', '_')}_{row['start']}_{row['end']}.wav")
+        else:
+            file_path = os.path.join(non_command_dir, f"{row['filename']}.wav")
 
-# Load and preprocess the audio data
-X, y = load_and_preprocess_audio(annotations)
+        y, sr = librosa.load(file_path, sr=None)
+        features, feature_names = extract_features(y, sr, max_len=max_timeframes, ica_enabled=ica_enabled)
+        padded_features = pad_features(features, max_feature_lens)
+        logging.info(f'Extracted features for {os.path.basename(file_path)}: shape {padded_features.shape}')
+        np.save(os.path.join(output_dir, row['filename']), padded_features)
 
-# Check the shape of the data
-print(f"Shape of data after preprocessing: {X.shape}")
+    return feature_names, max_feature_lens
 
-# Apply FastICA
-ica = FastICA(n_components=1)
-X_ica = ica.fit_transform(X)
+# Define the maximum number of timeframes (optional)
+max_timeframes = None
+ica_enabled = False  # Set to True to enable ICA cleaning
 
-# Check the shape of the data after ICA
-print(f"Shape of data after ICA: {X_ica.shape}")
+logging.info('Extracting features...')
+feature_names, max_feature_lens = process_and_save_features(annotations, audio_dir, non_command_dir, output_dir, max_timeframes, ica_enabled)
 
-# Reshape the ICA output for Conv1D
-X_ica_reshaped = X_ica.reshape(X_ica.shape[0], X_ica.shape[1], 1)
+# Save the feature names
+feature_names_file = os.path.join(meta_dir, 'idx_to_extracted_feature_names.csv')
+pd.DataFrame({'index': range(len(feature_names)), 'feature_name': feature_names}).to_csv(feature_names_file, index=False)
 
-# Check the shape of the data after re-shaping
-print(f"Shape of data after re-shaping: {X_ica_reshaped.shape}")
+# Calculate mean and std
+logging.info('Calculating mean and std...')
+extracted_features = []
+for file in os.listdir(output_dir):
+    if file.endswith('.npy'):
+        features = np.load(os.path.join(output_dir, file))
+        extracted_features.append(features)
 
-# Encode labels
-label_encoder = LabelEncoder()
-y_encoded = label_encoder.fit_transform(y)
+# Stack features along a new dimension
+stacked_features = np.stack(extracted_features, axis=0)
 
-# Convert labels to categorical
-num_classes = len(np.unique(y_encoded))
-y_categorical = to_categorical(y_encoded, num_classes)
+# Calculate mean and std across the new dimension
+mean = np.mean(stacked_features, axis=0)
+std = np.std(stacked_features, axis=0)
 
-# Split data into training and validation sets
-X_train, X_val, y_train, y_val = train_test_split(X_ica_reshaped, y_categorical, test_size=0.2, random_state=42)
+# Ensure no division by zero
+std[std == 0] = 1
 
-# Define the Conv1D model
-model = Sequential([
-    Input(shape=(X_train.shape[1], 1)),
-    Conv1D(filters=8, kernel_size=13, padding='valid', activation='relu', strides=1),
-    MaxPooling1D(pool_size=3),
-    Dropout(0.3),
-    Conv1D(filters=16, kernel_size=11, padding='valid', activation='relu', strides=1),
-    MaxPooling1D(pool_size=3),
-    Dropout(0.3),
-    Conv1D(filters=32, kernel_size=9, padding='valid', activation='relu', strides=1),
-    MaxPooling1D(pool_size=3),
-    Dropout(0.3),
-    Conv1D(filters=64, kernel_size=7, padding='valid', activation='relu', strides=1),
-    MaxPooling1D(pool_size=3),
-    Dropout(0.3),
-    Flatten(),
-    Dense(256, activation='relu'),
-    Dropout(0.3),
-    Dense(128, activation='relu'),
-    Dropout(0.3),
-    Dense(num_classes, activation='softmax')
-])
-
-# Compile the model
-model.compile(optimizer='adam', loss='categorical_crossentropy', metrics=['accuracy'])
-
-# Print the model summary
-model.summary()
-
-# Train the model
-history = model.fit(X_train, y_train, epochs=20, batch_size=32, validation_data=(X_val, y_val))
-
-# Evaluate the model
-y_pred = model.predict(X_val)
-y_pred_classes = np.argmax(y_pred, axis=1)
-y_val_classes = np.argmax(y_val, axis=1)
-
-from sklearn.metrics import classification_report
-
-print("Conv1D Neural Network Classifier Report")
-print(classification_report(y_val_classes, y_pred_classes, zero_division=0))
+logging.info(f'Mean shape: {mean.shape}, Std shape: {std.shape}')
+np.save(os.path.join(meta_dir, 'mean.npy'), mean)
+np.save(os.path.join(meta_dir, 'std.npy'), std)
+logging.info('Feature extraction and normalization complete.')

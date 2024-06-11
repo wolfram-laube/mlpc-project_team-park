@@ -1,16 +1,16 @@
-# training_script.py
 import os
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+from tensorflow.keras import layers, models, regularizers
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping, ModelCheckpoint
-from sklearn.utils import class_weight
 from tqdm import tqdm
 import logging
 import matplotlib.pyplot as plt
+from sklearn.utils import class_weight
 import json
-from utils import extract_features, pad_features
+from utils import augment_data
 from models import KolmogorovArnoldNetwork
 
 # Setup logging
@@ -57,7 +57,7 @@ def prepare_feature_data(annotations, feature_dir):
             logging.warning(f"Feature file {row['filename']} has unexpected shape {features.shape} and will be skipped.")
             continue
 
-        max_len = max(max_len, features.shape[1])  # Update max_len
+        max_len = max(max_len, features.shape[2])  # Update max_len
 
         command_text = row['command']
         if command_text not in command_mapping:
@@ -72,9 +72,9 @@ def prepare_feature_data(annotations, feature_dir):
     # Pad features to the same length
     padded_features = []
     for feature in command_features:
-        pad_width = max_len - feature.shape[1]
+        pad_width = max_len - feature.shape[2]
         if pad_width > 0:
-            feature = np.pad(feature, ((0, 0), (0, pad_width)), mode='constant')
+            feature = np.pad(feature, ((0, 0), (0, 0), (0, pad_width)), mode='constant')
         padded_features.append(feature)
 
     logging.info('Command data prepared.')
@@ -97,13 +97,6 @@ command_labels = to_categorical(command_labels, num_classes=num_classes)
 logging.info(f'Command mapping: {command_mapping}')
 
 # Data Augmentation Function
-def augment_data(features, noise_factor=0.005):
-    noise = np.random.randn(*features.shape) * noise_factor
-    augmented_features = features + noise
-    augmented_features = np.clip(augmented_features, -1.0, 1.0)
-    return augmented_features
-
-# Augment the training data
 augmented_features = augment_data(command_features)
 combined_features = np.concatenate((command_features, augmented_features), axis=0)
 combined_labels = np.concatenate((command_labels, command_labels), axis=0)
@@ -114,51 +107,11 @@ class_weights = class_weight.compute_class_weight(class_weight='balanced',
                                                   y=np.argmax(command_labels, axis=1))
 class_weights = dict(enumerate(class_weights))
 
-# Kolmogorov-Arnold Network (KAN) Model
-class KolmogorovArnoldNetwork(tf.keras.Model):
-    def __init__(self, input_shape, num_univariate_functions, hidden_units, num_classes, **kwargs):
-        super(KolmogorovArnoldNetwork, self).__init__(**kwargs)
-        self.input_shape = input_shape
-        self.num_univariate_functions = num_univariate_functions
-        self.hidden_units = hidden_units
-        self.num_classes = num_classes
+# Adjust input data shape
+combined_features = np.squeeze(combined_features, axis=1)
+print(f'Adjusted combined_features shape: {combined_features.shape}')
 
-        # Univariate functions layers
-        self.univariate_layers = [layers.Dense(hidden_units, activation='tanh') for _ in range(num_univariate_functions)]
-
-        # Combination layer
-        self.combination_layer = layers.Dense(hidden_units, activation='relu')
-
-        # Output layer
-        self.output_layer = layers.Dense(num_classes, activation='softmax')
-
-    def call(self, inputs):
-        # Apply univariate functions
-        univariate_outputs = [layer(inputs) for layer in self.univariate_layers]
-
-        # Combine outputs
-        combined_output = tf.concat(univariate_outputs, axis=-1)
-        combined_output = self.combination_layer(combined_output)
-
-        # Flatten and apply final output layer
-        combined_output = tf.reduce_mean(combined_output, axis=2)  # Average over feature dimension
-        return self.output_layer(combined_output)
-
-    def get_config(self):
-        config = super(KolmogorovArnoldNetwork, self).get_config()
-        config.update({
-            'input_shape': self.input_shape,
-            'num_univariate_functions': self.num_univariate_functions,
-            'hidden_units': self.hidden_units,
-            'num_classes': self.num_classes,
-        })
-        return config
-
-    @classmethod
-    def from_config(cls, config):
-        return cls(**config)
-
-input_shape = (command_features.shape[1], command_features.shape[2])
+input_shape = (combined_features.shape[1], combined_features.shape[2])
 num_univariate_functions = 5
 hidden_units = 128
 
