@@ -8,3 +8,6 @@
 /dataset/scenes/
 /dataset/preprocessed_audio/
 /dataset/meta/
+/task_4/unknown_commands/
+/task_4/noises/
+/dataset/clipped_commands/
