@@ -1,3 +1,5 @@
+#!pip install librosa torch transformers
+
 import os
 import re
 import torch
@@ -62,10 +64,12 @@ def load_audio_files(directory):
     return audio_data
 
 
-# Training function
-def train_model(model, processor, train_loader, num_epochs=3, lr=5e-5):
+# Training function with validation and model checkpointing
+def train_model(model, processor, train_loader, val_loader, num_epochs=3, lr=5e-5):
     model.train()
     optimizer = torch.optim.AdamW(model.parameters(), lr=lr)
+    best_val_loss = float('inf')
+
     for epoch in range(num_epochs):
         epoch_loss = 0
         for input_values, label_ids in train_loader:
@@ -83,11 +87,35 @@ def train_model(model, processor, train_loader, num_epochs=3, lr=5e-5):
 
             epoch_loss += loss.item()
 
-        print(f"Epoch {epoch + 1}, Loss: {epoch_loss / len(train_loader)}")
+        # Validation
+        val_loss = validate_model(model, val_loader)
+        print(f"Epoch {epoch + 1}, Training Loss: {epoch_loss / len(train_loader)}, Validation Loss: {val_loss}")
 
-    # Save the model after training
-    model.save_pretrained("fine_tuned_wav2vec2")
-    processor.save_pretrained("fine_tuned_wav2vec2")
+        # Check if this is the best model so far
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            print("Saving the new best model...")
+            model.save_pretrained("fine_tuned_wav2vec2")
+            processor.save_pretrained("fine_tuned_wav2vec2")
+
+
+# Validation function
+def validate_model(model, val_loader):
+    model.eval()
+    val_loss = 0
+    with torch.no_grad():
+        for input_values, label_ids in val_loader:
+            outputs = model(input_values)
+            logits = outputs.logits
+
+            # Compute lengths for CTC loss
+            input_lengths = torch.full((logits.shape[0],), logits.shape[1], dtype=torch.long)
+            label_lengths = torch.sum(label_ids != -100, dim=1)
+
+            loss = torch.nn.CTCLoss()(logits.transpose(0, 1), label_ids, input_lengths, label_lengths)
+            val_loss += loss.item()
+    model.train()
+    return val_loss / len(val_loader)
 
 
 # Inference function with timestamps
@@ -141,9 +169,13 @@ if __name__ == "__main__":
     processor, model = load_model_and_tokenizer()
 
     train_dataset = AudioDataset(scenes_audio, processor)
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, collate_fn=collate_fn)
+    val_dataset = AudioDataset(scenes_audio[:int(len(scenes_audio) * 0.2)], processor)  # 20% of data for validation
+    train_dataset = AudioDataset(scenes_audio[int(len(scenes_audio) * 0.2):], processor)  # 80% for training
 
-    train_model(model, processor, train_loader, num_epochs=3, lr=5e-5)
+    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True, collate_fn=collate_fn)
+    val_loader = DataLoader(val_dataset, batch_size=8, shuffle=False, collate_fn=collate_fn)
+
+    train_model(model, processor, train_loader, val_loader, num_epochs=3, lr=5e-5)
 
     unseen_audio_file = 'path_to_unseen_audio.wav'
     transcription, word_timestamps = infer_with_timestamps(model, processor, unseen_audio_file)
