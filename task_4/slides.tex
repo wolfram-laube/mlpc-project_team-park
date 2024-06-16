@@ -1,0 +1,123 @@
+\documentclass{beamer}
+\usetheme{Madrid} % This is a simple and clean theme, but you can change it to other themes like: Berlin, Warsaw, etc.
+
+\title{Speech Command Detection in Noisy Environments}
+\subtitle{A Deep Learning Approach to Audio Classification}
+\author{Team Park: D. Hörtenhuber, O. König, W. Laube}
+\institute{JKU \\ MLPC}
+\date{\today}
+
+\begin{document}
+
+\begin{frame}
+  \titlepage
+\end{frame}
+
+\begin{frame}{Introduction}
+  \begin{itemize}
+    \item \textbf{Objective:} Develop a robust speech command detection system for smart home environments.
+    \item \textbf{Scope:} Detect commands in noisy, continuous audio streams.
+    \item \textbf{Goals:}
+      \begin{itemize}
+        \item Minimize detection costs.
+        \item Evaluate performance in realistic scenarios.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{System Architecture}
+  \begin{itemize}
+    \item \textbf{Preprocessing:}
+      \begin{itemize}
+        \item Voice Activity Detection (VAD)
+        \item Feature Extraction (MFCCs)
+      \end{itemize}
+    \item \textbf{Model:}
+      \begin{itemize}
+        \item CNN with multiple Conv1D layers
+        \item Max pooling and dropout for regularization
+      \end{itemize}
+    \item \textbf{Post-processing:}
+      \begin{itemize}
+        \item Sliding window approach
+        \item Thresholding and command formation
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hypothesis 1: Hyperparameter Tuning}
+  \begin{itemize}
+    \item \textbf{Objective:} Improve model performance by tuning hyperparameters.
+    \item \textbf{Parameters Tuned:}
+      \begin{itemize}
+        \item Learning rate
+        \item Number of layers
+        \item Dropout rate
+      \end{itemize}
+    \item \textbf{Outcome:}
+      \begin{itemize}
+        \item Increased accuracy
+        \item Reduced false positives
+      \end{itemize}
+    \item \textbf{Results:}
+      \begin{itemize}
+        \item Example: Accuracy improved from 85\% to 92\%
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hypothesis 2: Ensembling}
+  \begin{itemize}
+    \item \textbf{Objective:} Enhance robustness by combining multiple models.
+    \item \textbf{Models Used:}
+      \begin{itemize}
+        \item Multiple CNNs with different architectures
+        \item Ensemble voting mechanism
+      \end{itemize}
+    \item \textbf{Outcome:}
+      \begin{itemize}
+        \item Reduced false positives and cross-triggers
+      \end{itemize}
+    \item \textbf{Results:}
+      \begin{itemize}
+        \item Example: Total cost reduced by 15\%
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hypothesis 3: Data Augmentation}
+  \begin{itemize}
+    \item \textbf{Objective:} Improve model robustness to noise and variations.
+    \item \textbf{Techniques:}
+      \begin{itemize}
+        \item Adding background noise
+        \item Pitch and speed variations
+      \end{itemize}
+    \item \textbf{Outcome:}
+      \begin{itemize}
+        \item Improved performance in noisy environments
+      \end{itemize}
+    \item \textbf{Results:}
+      \begin{itemize}
+        \item Example: Accuracy increased by 5\% in noisy conditions
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Conclusion and Future Work}
+  \begin{itemize}
+    \item \textbf{Summary:}
+      \begin{itemize}
+        \item Developed a robust system for speech command detection
+        \item Significant improvements through hyperparameter tuning, ensembling, and data augmentation
+      \end{itemize}
+    \item \textbf{Future Work:}
+      \begin{itemize}
+        \item Enhance noise robustness
+        \item Incorporate user-specific adaptations
+        \item Explore real-time processing capabilities
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\end{document}

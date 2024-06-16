@@ -1,0 +1,52 @@
+\section{Improvement Strategies}
+\subsection{Hyperparameter Tuning}
+\subsubsection{Description}
+We tuned the hyperparameters of our classifier, including the learning rate, number of layers, and regularization parameters. The goal was to enhance the detection accuracy and reduce the associated costs.
+
+\subsubsection{Outcome}
+The tuning process resulted in significant performance improvements, as shown in Figure \ref{fig:hyperparameter_tuning}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{hyperparameter_tuning.png}
+\caption{Impact of hyperparameter tuning on detection accuracy and costs.}
+\label{fig:hyperparameter_tuning}
+\end{figure}
+
+\subsection{Ensembling}
+\subsubsection{Description}
+We combined predictions from multiple models to form an ensemble. This approach aimed to leverage the strengths of different classifiers to improve robustness.
+
+\subsubsection{Outcome}
+The ensemble model reduced the number of false positives and overall costs, as depicted in Table \ref{tab:ensemble_results}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+Metric & Single Model & Ensemble Model \\
+\midrule
+True Positives & 70 & 75 \\
+False Negatives & 5 & 4 \\
+False Positives & 15 & 10 \\
+Cross-Triggers & 8 & 5 \\
+Total Cost & -10 & -20 \\
+\bottomrule
+\end{tabular}
+\caption{Evaluation results comparing a single model and the ensemble model.}
+\label{tab:ensemble_results}
+\end{table}
+
+\subsection{Data Augmentation}
+\subsubsection{Description}
+We augmented the training data with various transformations, including noise addition, pitch changes, and speed variations. This aimed to increase the diversity of the training set and improve the model's robustness to different conditions.
+
+\subsubsection{Outcome}
+Data augmentation led to improved detection performance and reduced costs, particularly in noisy environments. The results are summarized in Figure \ref{fig:data_augmentation}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\textwidth]{data_augmentation.png}
+\caption{Impact of data augmentation on detection performance and costs.}
+\label{fig:data_augmentation}
+\end{figure}

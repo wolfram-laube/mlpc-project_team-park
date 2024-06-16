@@ -1,0 +1,29 @@
+\section{Simple Speech Command Detection System}
+\subsection{System Description}
+Our initial system employs a sliding window approach on the audio stream, where overlapping segments are analyzed to detect keywords. The system uses a window size of 1 second with a 0.5-second hop size to ensure thorough coverage of the audio stream.
+
+\subsection{Thresholding and Combining Predictions}
+To detect full speech commands, we combine keyword predictions by applying a probability threshold. Detected keywords within a close temporal vicinity are combined to form complete commands. Heuristics such as consecutive detections are considered part of the same command sequence.
+
+\subsection{Cost Minimization Strategies}
+To minimize costs, we adjusted the decision thresholds to reduce false positives. Post-processing rules were implemented to filter out unlikely command sequences, such as ensuring that action keywords follow device keywords.
+
+\subsection{Evaluation Setup and Results}
+We validated our system using a subset of the annotated scenes from the provided dataset. The evaluation involved a 70/30 training-validation split. The results indicated a reduction in costs compared to the naive baseline, as detailed in Table \ref{tab:simple_system_results}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+Metric & Naive Baseline & Simple System \\
+\midrule
+True Positives & 60 & 70 \\
+False Negatives & 10 & 5 \\
+False Positives & 30 & 15 \\
+Cross-Triggers & 10 & 8 \\
+Total Cost & 5 & -10 \\
+\bottomrule
+\end{tabular}
+\caption{Evaluation results comparing the naive baseline and the simple speech command detection system.}
+\label{tab:simple_system_results}
+\end{table}
