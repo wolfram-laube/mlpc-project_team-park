@@ -1,0 +1,59 @@
+\documentclass{article}
+
+% if you need to pass options to natbib, use, e.g.:
+%     \PassOptionsToPackage{numbers, compress}{natbib}
+% before loading neurips_2023
+
+% ready for submission
+\usepackage[final]{neurips_2023}
+
+% to avoid loading the natbib package, add option nonatbib:
+%    \usepackage[nonatbib]{neurips_2023}
+
+\usepackage[utf8]{inputenc} % allow utf-8 input
+\usepackage[T1]{fontenc}    % use 8-bit T1 fonts
+\usepackage{hyperref}       % hyperlinks
+\usepackage{url}            % simple URL typesetting
+\usepackage{booktabs}       % professional-quality tables
+\usepackage{amsfonts}       % blackboard math symbols
+\usepackage{nicefrac}       % compact symbols for 1/2, etc.
+\usepackage{microtype}      % microtypography
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{graphicx}       % colors
+
+\title{MLPC Report Task 4 - Speech Command Detection in Noisy Environments}
+
+\author{%
+  Team Park \And
+  Author Oliver König \And
+  Author Daniel Hörtenhuber \And
+  Author Wolfram Laube
+}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+This report details the development and evaluation of a system designed to detect speech commands in noisy environments for smart home devices. The project focuses on optimizing classifiers to identify commands within continuous audio streams. This report includes a naive baseline system, the development of a simple detection system, various strategies for improvement, and a critical reflection on real-world deployment potential.
+\end{abstract}
+
+\section{Introduction}
+The objective of this project is to develop a robust speech command detection system capable of recognizing commands in noisy domestic environments. The system is intended to facilitate hands-free control of smart home devices using natural language. The final phase of the project focuses on tuning classifiers to detect complete speech commands within continuous audio streams, minimizing associated costs, and evaluating their performance in realistic scenarios.
+
+\begin{contributions}
+  Section 1: Establishing a Naive Baseline: Oliver König \AND
+  Section 2: Simple Speech Command Detection System: Daniel Hörtenhuber \AND
+  Section 3: Improvement Strategies: Wolfram Laube \AND
+  Section 4: Critical Reflection: Collaborative \AND
+  Section 5: Conclusion: Collaborative
+\end{contributions}
+
+\input{report_section1_naive_baseline}
+\input{report_section2_simple_system}
+\input{report_section3_improvements}
+\input{report_section4_reflection}
+\input{report_section5_conclusion}
+
+\end{document}
