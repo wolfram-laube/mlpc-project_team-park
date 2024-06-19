@@ -1,0 +1,23 @@
+\section{Conclusion}
+In this project, we developed a speech command detection system capable of recognizing commands in noisy domestic environments. Starting from a naive baseline system, we incrementally improved our approach by developing a simple detection system and exploring various enhancement strategies, including hyperparameter tuning, ensembling, and data augmentation.
+
+Our evaluations demonstrated that the improved system significantly outperformed the naive baseline, achieving lower costs and better robustness in detecting speech commands. Each enhancement strategy contributed to reducing false positives and improving overall detection accuracy, making the system more reliable for practical use.
+
+\subsection{Summary of Key Findings}
+\begin{itemize}
+  \item The naive baseline system, while simple, incurred high costs due to numerous false positives and cross-triggers.
+  \item The simple detection system, utilizing a sliding window approach and post-processing heuristics, provided a substantial improvement over the baseline.
+  \item Hyperparameter tuning, ensembling, and data augmentation further enhanced the system's performance, reducing false positives and increasing true positive rates.
+  \item The ensemble model, in particular, showed a marked improvement in robustness and overall cost reduction.
+\end{itemize}
+
+\subsection{Future Work}
+While our system performs well in controlled environments, future work will focus on adapting the system for real-world deployment. Key areas for improvement include:
+\begin{itemize}
+  \item Enhancing noise robustness through advanced filtering techniques.
+  \item Incorporating user-specific adaptation mechanisms to handle diverse accents and speech patterns.
+  \item Implementing real-time processing capabilities using edge computing strategies.
+  \item Continuous learning to allow the system to adapt over time and improve its performance with regular usage.
+\end{itemize}
+
+In conclusion, the project successfully demonstrated the feasibility of detecting speech commands in noisy environments using machine learning techniques. The insights gained from this project will guide future efforts in developing robust, user-friendly speech recognition systems for smart home applications.

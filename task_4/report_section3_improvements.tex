@@ -1,0 +1,70 @@
+\section{Improvement Strategies}
+\subsection{Hyperparameter Tuning}
+We explored three diverse strategies to improve our initial speech command detection system: hyperparameter tuning, ensembling, and data augmentation. Each strategy aims to enhance detection accuracy and reduce associated costs.
+\subsubsection{Description}
+We tuned the hyperparameters of our classifier, to enhance the detection accuracy and reduce the associated costs. We identified the following key steps for our classifier:
+\begin{itemize}
+  \item \textbf{Learning Rate:} Adjusted to control the step size during gradient descent.
+  \item \textbf{Number of Layers:} Varied the depth and width of the neural network to find an optimal architecture.
+  \item \textbf{Regularization:} Applied techniques like dropout to prevent overfitting.
+\end{itemize}
+
+
+\subsubsection{Outcome}
+The tuning process was conducted using grid search on the validation set. The optimized hyperparameters led to a significant impact on the accuracy and costs as shown in the figure.
+\ref{fig:hyperparameter_tuning}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{hyperparameter_tuning.png}
+\caption{Impact of hyperparameter tuning on detection accuracy and costs.}
+\label{fig:hyperparameter_tuning}
+\end{figure}
+
+\subsection{Ensembling}
+\subsubsection{Description}
+We used ensembling to combine the predictions from multiple models to leverage their individual strengths and enhance overall robustness. Our approaches here were:
+\begin{itemize}
+  \item \textbf{Boosting:} Sequentially trained classifiers, where each classifier attempts to correct the errors of its predecessor.
+  \item \textbf{Bagging:} Combined predictions from multiple instances of the same classifier trained on different subsets of the training data.
+\end{itemize}
+
+\subsubsection{Outcome}
+The ensemble model was evaluated on the validation set and reduced the number of false positives and overall costs, as depicted in Table \ref{tab:ensemble_results}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lccc}
+\toprule
+Metric & Single Model & Ensemble Model \\
+\midrule
+True Positives & 70 & 75 \\
+False Negatives & 5 & 4 \\
+False Positives & 15 & 10 \\
+Cross-Triggers & 8 & 5 \\
+Total Cost & -10 & -20 \\
+\bottomrule
+\end{tabular}
+\caption{Evaluation results comparing a single model and the ensemble model.}
+\label{tab:ensemble_results}
+\end{table}
+
+\subsection{Data Augmentation}
+\subsubsection{Description}
+We augmented the training data with various transformations, including noise addition, pitch changes, and speed variations. These techniques helped the model generalize better to unseen data, particularly noisy recordings. However, traditional models still struggled in real-world scenarios.
+
+Despite achieving good classification results for individual words and scenes with traditional approaches, all models failed to correctly evaluate random audio snippets using the prediction script. Extensive data augmentation and noise enrichment caused everything to be recognized as "noise," while less augmentation led to incorrect classifications (e.g., "Ofen aus" when no Ofen was involved). This affected all models tested, including CNNs in Conv1D, Conv2D with or without LSTM, GRU, and Kolmogorov-Arnold-NN, regardless of whether raw audio data or extracted features were used.
+
+A successful approach involved using pre-trained Wav2Vec, fine-tuned on individual words and trained on scenes to generate transcriptions. This method produced usable results even with challenging dialects and fast-spoken commands. The transcriptions were filtered to meaningful commands using Levenshtein distance, resulting in reliable outcomes. This approach bypasses traditional feature extraction and works directly with transcribed data.
+
+
+\subsubsection{Outcome}
+Augmenting the training data resulted in a model that was more robust to variations in the audio environment, leading to improved detection performance in noisy conditions.
+\ref{fig:data_augmentation}.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{data_augmentation.png}
+\caption{Impact of data augmentation on detection performance and costs.}
+\label{fig:data_augmentation}
+\end{figure}
