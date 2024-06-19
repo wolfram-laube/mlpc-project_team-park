@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>WAV File Command Prediction</title>
+    <style>
+      .time-display {
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        color: #555;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>WAV File Command Prediction</h1>
+    <form action="{{ url_for('update') }}" method="post">
+      <table>
+        <tr>
+          <th>Filename</th>
+          <th>Command</th>
+          <th>Timestamp</th>
+          <th>Actions</th>
+        </tr>
+        {% for index, row in predictions.iterrows() %}
+        <tr>
+          <td>{{ row['filename'] }}</td>
+          <td>
+            <select name="command">
+              {% for command in commands %}
+              <option value="{{ command }}" {% if row['command'] == command %}selected{% endif %}>{{ command }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td>
+            <input type="text" name="timestamp" value="{{ row['timestamp'] }}">
+          </td>
+          <td>
+            <audio id="audio-{{ row['filename'] }}" controls>
+              <source src="{{ url_for('static', filename='wav_files/' + row['filename'] + '.wav') }}" type="audio/wav">
+              Your browser does not support the audio element.
+            </audio>
+            <div id="time-display-{{ row['filename'] }}" class="time-display">0:00.000</div>
+            <button type="submit" name="filename" value="{{ row['filename'] }}">Save</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </table>
+    </form>
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        const audioElements = document.querySelectorAll("audio");
+
+        audioElements.forEach(audio => {
+          audio.addEventListener("timeupdate", function() {
+            const timeDisplay = document.getElementById("time-display-" + audio.id.split('-')[1]);
+            const currentTime = audio.currentTime;
+            const minutes = Math.floor(currentTime / 60);
+            const seconds = Math.floor(currentTime % 60);
+            const milliseconds = Math.floor((currentTime % 1) * 1000);
+            timeDisplay.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}.${milliseconds < 100 ? '0' : ''}${milliseconds < 10 ? '0' : ''}${milliseconds}`;
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
