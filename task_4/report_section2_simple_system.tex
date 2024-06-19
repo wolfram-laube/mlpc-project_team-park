@@ -1,9 +1,13 @@
 \section{Simple Speech Command Detection System}
 \subsection{System Description}
-Our initial speech command detection system employs a sliding window approach on the audio stream. This method involves analyzing overlapping segments of the audio to detect keywords. Specifically, we use a window size of 1 second with a 0.5-second hop size to ensure thorough coverage of the audio stream. This setup allows the system to capture short-duration commands and mitigate the impact of varying command lengths.
+Our initial speech command detection system employs a sliding window approach on the audio stream.
+This method involves analyzing overlapping segments of the audio to detect keywords.
+Specifically, we use a window size of 2 seconds with a 0.2-second hop size to ensure thorough coverage of the audio stream.
+This setup allows the system to capture short-duration commands and mitigate the impact of varying command lengths.
 
 \subsection{Thresholding and Combining Predictions}
-To accurately detect full speech commands, we implemented a thresholding mechanism. The steps involved are as follows:
+To accurately detect full speech commands, we implemented a thresholding mechanism.
+The steps involved are as follows:
 
 \begin{itemize}
   \item \textbf{Keyword Detection:} For each segment of audio, the system predicts the presence of keywords.
