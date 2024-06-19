@@ -1,5 +1,5 @@
 \documentclass{beamer}
-\usetheme{Madrid} % This is a simple and clean theme, but you can change it to other themes like: Berlin, Warsaw, etc.
+\usetheme{Madrid}
 
 \title{Speech Command Detection in Noisy Environments}
 \subtitle{A Deep Learning Approach to Audio Classification}
@@ -15,8 +15,14 @@
 
 \begin{frame}{Introduction}
   \begin{itemize}
-    \item \textbf{Objective:} Develop a robust speech command detection system for smart home environments.
-    \item \textbf{Scope:} Detect commands in noisy, continuous audio streams.
+    \item \textbf{Objective:}
+          \begin{itemize}
+          \item Develop a robust speech command detection system for smart home environments.
+            \end{itemize}
+    \item \textbf{Scope:} 
+          \begin{itemize}
+    \item Detect commands in noisy, continuous audio streams.
+          \end{itemize}
     \item \textbf{Goals:}
       \begin{itemize}
         \item Minimize detection costs.
@@ -25,7 +31,7 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{System Architecture}
+\begin{frame}{SBasic System Architecture}
   \begin{itemize}
     \item \textbf{Preprocessing:}
       \begin{itemize}
@@ -34,7 +40,7 @@
       \end{itemize}
     \item \textbf{Model:}
       \begin{itemize}
-        \item CNN with multiple Conv1D layers
+        \item CNN with multiple Conv1D layers (later augmented with GRU, LSTM)
         \item Max pooling and dropout for regularization
       \end{itemize}
     \item \textbf{Post-processing:}
@@ -45,34 +51,43 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Hypothesis 1: Hyperparameter Tuning}
-  \begin{itemize}
-    \item \textbf{Objective:} Improve model performance by tuning hyperparameters.
-    \item \textbf{Parameters Tuned:}
+\begin{frame}{Improvement 1: Hyperparameter Tuning}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
       \begin{itemize}
-        \item Learning rate
-        \item Number of layers
-        \item Dropout rate
+        \item \textbf{Objective:}
+        \begin{itemize}
+         \item Improve model performance by tuning hyperparameters.
+        \end{itemize}
+        \item \textbf{Parameters Tuned:}
+          \begin{itemize}
+            \item Learning rate
+            \item Number of layers
+            \item Dropout rate
+          \end{itemize}
+        \item \textbf{Outcome:}
+          \begin{itemize}
+            \item Increased accuracy
+            \item Reduced false positives
+          \end{itemize}
       \end{itemize}
-    \item \textbf{Outcome:}
-      \begin{itemize}
-        \item Increased accuracy
-        \item Reduced false positives
-      \end{itemize}
-    \item \textbf{Results:}
-      \begin{itemize}
-        \item Example: Accuracy improved from 85\% to 92\%
-      \end{itemize}
-  \end{itemize}
-    \begin{figure}
-    \includegraphics[width=0.7\textwidth]{accuracy_loss_curves.png}
-    \caption{Model accuracy and loss curves}
-  \end{figure}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig/tuned_learning_curves.jpeg}
+        \caption{Model accuracy and loss curves.}
+      \end{figure}
+    \end{column}
+  \end{columns}
 \end{frame}
 
-\begin{frame}{Hypothesis 2: Ensembling}
+\begin{frame}{Improvement 2: Ensembling}
   \begin{itemize}
-    \item \textbf{Objective:} Enhance robustness by combining multiple models.
+    \item \textbf{Objective:}
+        \begin{itemize}
+        \item     Enhance robustness by combining multiple models.
+      \end{itemize}
+
     \item \textbf{Models Used:}
       \begin{itemize}
         \item Multiple CNNs with different architectures
@@ -82,38 +97,36 @@
       \begin{itemize}
         \item Reduced false positives and cross-triggers
       \end{itemize}
-    \item \textbf{Results:}
-      \begin{itemize}
-        \item Example: Total cost reduced by 15\%
       \end{itemize}
-  \end{itemize}
-    \begin{figure}
-    \includegraphics[width=\textwidth]{ensemble_performance.png}
-    \caption{Performance comparison of single model vs. ensemble model}
-  \end{figure}
 \end{frame}
 
-\begin{frame}{Hypothesis 3: Data Augmentation}
-  \begin{itemize}
-    \item \textbf{Objective:} Improve model robustness to noise and variations.
-    \item \textbf{Techniques:}
+\begin{frame}{Improvement 3: Data Augmentation}
+  \begin{columns}
+    \begin{column}{0.5\textwidth}
       \begin{itemize}
-        \item Adding background noise
-        \item Pitch and speed variations
+        \item \textbf{Objective:}
+            \begin{itemize}
+            \item Improve model robustness to noise and variations.
+            \end{itemize}
+        \item \textbf{Techniques:}
+          \begin{itemize}
+            \item Adding background noise
+            \item Pitch and speed variations
+            \item 3rdParty augemntation data
+          \end{itemize}
+        \item \textbf{Outcome:}
+          \begin{itemize}
+            \item Improved performance in noisy environments, reduced false positives
+          \end{itemize}
       \end{itemize}
-    \item \textbf{Outcome:}
-      \begin{itemize}
-        \item Improved performance in noisy environments
-      \end{itemize}
-    \item \textbf{Results:}
-      \begin{itemize}
-        \item Example: Accuracy increased by 5\% in noisy conditions
-      \end{itemize}
-  \end{itemize}
-    \begin{figure}
-    \includegraphics[width=\textwidth]{data_augmentation_impact.png}
-    \caption{Impact of data augmentation on model performance and costs}
-  \end{figure}
+    \end{column}
+    \begin{column}{0.5\textwidth}
+      \begin{figure}
+        \includegraphics[width=\textwidth]{fig/tuned_heatmap.jpeg}
+        \caption{Impact of data augmentation on model performance.}
+      \end{figure}
+    \end{column}
+  \end{columns}
 \end{frame}
 
 \begin{frame}{Conclusion and Future Work}
