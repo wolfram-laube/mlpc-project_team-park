@@ -1,8 +1,11 @@
 \section{Establishing a Naive Baseline}
-A naive baseline system for detecting speech commands could be a simple keyword spotting algorithm that identifies any segment of speech as a command without considering context or surrounding words. This approach uses basic voice activity detection (VAD) to segment the audio and classifies any speech segment containing known keywords as a command.
+The naive baseline system for detecting speech commands was a simple keyword spotting algorithm
+that identifies any segment of speech as a command without considering context or surrounding words.
+This approach uses basic voice activity detection (VAD) to segment the audio and classifies any speech segment containing known keywords as a command.
 
 \subsection{Expected Costs}
-The naive baseline is likely to incur high costs due to a significant number of false positives and cross-triggers. For example, any detected speech might trigger a command, leading to:
+The naive baseline incurs high costs due to a significant number of false positives and cross-triggers.
+For example, any detected speech might trigger a command, leading to:
 
 \begin{itemize}
   \item \textbf{True Positives (TP):} Correctly identified commands within the correct time frame.
@@ -11,7 +14,8 @@ The naive baseline is likely to incur high costs due to a significant number of 
   \item \textbf{Cross-Triggers (CT):} Misrecognized commands.
 \end{itemize}
 
-Assuming a scenario where the baseline detects 100 events, with 60 being correct commands, 30 being unrelated speech (FP), and 10 missed commands (FN), the costs would be calculated as follows:
+Assuming a scenario where the baseline detects 100 events, with 60 being correct commands, 30 being unrelated speech (FP), and 10 missed commands (FN),
+the cost can be calculated as follows:
 
 \begin{align*}
 \text{TP Cost} &= 60 \times -1 = -60 \\
