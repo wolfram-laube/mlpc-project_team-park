@@ -15,27 +15,33 @@ The tuning process was conducted using grid search on the validation set.
 The optimized hyperparameters finally led to a smooth training process with promising validation as shown in figures
 \ref{fig:tuned_learning_curves} and \ref{fig:tuned_heatmap}.
 
-%\begin{figure}[h]
-%\centering
-%\includegraphics[width=0.6\textwidth]{fig/tuned_learning_curves}
-%\caption{Impact of hyperparameter tuning on training and validation.}
-%\label{fig:hyperparameter_tuning}
-%\end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{fig/tuned_learning_curves}
+\caption{Learning Curve After Tuning.}
+\label{fig:tuned_learning_curves}
+\end{figure}
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{fig/tuned_heatmap}
+\caption{Heatmap After Tuning.}
+\label{fig:tuned_heatmap}
+\end{figure}
 
-\begin{figure}[!ht]
-	\centering
-	\begin{minipage}{0.49\textwidth}
-		\centering
-		\includegraphics[scale=0.15]{fig/tuned_learning_curves}
-		\caption{Learning Curve After Tuning.}
-      \label{fig:tuned_learning_curves}
-	\end{minipage}\hfill
-	\begin{minipage}{0.2\textwidth}
-		\centering
-		\includegraphics[scale=0.1]{fig/tuned_heatmap}
-		\caption{Heatmap After Tuning.}
-        \label{fig:tuned_heatmap}
-	\end{minipage}
+%\begin{figure}[!ht]
+%	\centering
+%	\begin{minipage}{0.49\textwidth}
+%		\centering
+%		\includegraphics[scale=0.2]{fig/tuned_learning_curves}
+%		\caption{Learning Curve After Tuning.}
+%       \label{fig:tuned_learning_curves}
+%	\end{minipage}\hfill
+%	\begin{minipage}{0.2\textwidth}
+%		\centering
+%		\includegraphics[scale=0.2]{fig/tuned_heatmap}
+%		\caption{Heatmap After Tuning.}
+%       \label{fig:tuned_heatmap}
+%	\end{minipage}
 
 \end{figure}
 
@@ -69,18 +75,26 @@ Total Cost & -10 & -20 \\
 
 \subsection{Data Augmentation}
 \subsubsection{Description}
-We augmented the training data with various transformations, including noise addition, pitch changes, and speed variations.
-These techniques helped the model generalize better to unseen data, particularly noisy recordings
-(h)owever, traditional models still struggled in real-world scenarios).
+We augmented the existing training data with various transformations, including
+
+\begin{enumerate}
+\item noise addition
+\item pitch changes
+\item speed variations
+\end{enumerate}
+
+Additionally, we incorporated publicly available 3rdParty augmentation data for both speech and noise.
+
+In sum, these techniques helped the model generalize better to unseen data, particularly noisy recordings
+(however, traditional models still struggled in real-world scenarios).
 
 \subsubsection{Outcome}
 Augmenting the training data resulted in a model that was more robust to variations in the audio environment,
 leading to improved detection performance in noisy conditions.
-\ref{fig:data_augmentation}.
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.6\textwidth]{fig/data_augmentation.png}
-\caption{Impact of data augmentation on detection performance and costs.}
-\label{fig:data_augmentation}
-\end{figure}
+%\begin{figure}[h]
+%\centering
+%\includegraphics[width=0.6\textwidth]{fig/data_augmentation.png}
+%\caption{Impact of data augmentation on detection performance and costs.}
+%\label{fig:data_augmentation}
+%\end{figure}
